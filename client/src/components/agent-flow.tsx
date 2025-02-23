@@ -125,20 +125,27 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
     let x = 0;
     let y = 0;
 
-    // Position based on agent type
-    if (agent.type.includes('executive')) {
+    // Position based on agent role in the hierarchy
+    if (agent.type.includes('strategist')) {
       x = 350; // Center
       y = 50;  // Top
-    } else if (agent.type.includes('director')) {
-      const directorCount = configuration.agents.filter(a => a.type.includes('director')).length;
-      const directorIndex = configuration.agents.filter(a => a.type.includes('director')).findIndex(a => a.type === agent.type);
-      x = (700 / (directorCount + 1)) * (directorIndex + 1); // Spread directors evenly
-      y = 250; // Middle
+    } else if (agent.type.includes('orchestrator')) {
+      x = 350; // Center
+      y = 200; // Middle
     } else {
-      const specialistCount = configuration.agents.filter(a => !a.type.includes('executive') && !a.type.includes('director')).length;
-      const specialistIndex = configuration.agents.filter(a => !a.type.includes('executive') && !a.type.includes('director')).findIndex(a => a.type === agent.type);
-      x = (700 / (specialistCount + 1)) * (specialistIndex + 1); // Spread specialists evenly
-      y = 450; // Bottom
+      // Calculate position for specialist agents in a semi-circle below
+      const specialistCount = configuration.agents.filter(a => 
+        !a.type.includes('strategist') && !a.type.includes('orchestrator')
+      ).length;
+      const specialistIndex = configuration.agents.filter(a => 
+        !a.type.includes('strategist') && !a.type.includes('orchestrator')
+      ).findIndex(a => a.type === agent.type);
+
+      // Create a semi-circle arrangement
+      const angle = (Math.PI / (specialistCount - 1)) * specialistIndex;
+      const radius = 300;
+      x = 350 + radius * Math.cos(angle); // Center + radius * cos(angle)
+      y = 400 + radius * Math.sin(angle) * 0.5; // Lower + radius * sin(angle), compressed vertically
     }
 
     return {
@@ -164,38 +171,51 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
     setNodes((nds) => applyNodeChanges(changes, nds));
   };
 
-  // Create edges based on hierarchy
+  // Create edges based on the collaboration model
   const edges: Edge[] = [];
-  const executive = nodes.find(n => n.data.type.includes('executive'));
-  const directors = nodes.filter(n => n.data.type.includes('director'));
-  const specialists = nodes.filter(n => !n.data.type.includes('executive') && !n.data.type.includes('director'));
+  const strategist = nodes.find(n => n.data.type.includes('strategist'));
+  const orchestrator = nodes.find(n => n.data.type.includes('orchestrator'));
+  const specialists = nodes.filter(n => 
+    !n.data.type.includes('strategist') && !n.data.type.includes('orchestrator')
+  );
 
-  if (executive) {
-    // Connect executive to directors
-    directors.forEach(director => {
+  if (strategist && orchestrator) {
+    // Connect strategist to orchestrator
+    edges.push({
+      id: `${strategist.id}-${orchestrator.id}`,
+      source: strategist.id,
+      target: orchestrator.id,
+      animated: true,
+      style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+    });
+
+    // Connect orchestrator to all specialists
+    specialists.forEach(specialist => {
       edges.push({
-        id: `${executive.id}-${director.id}`,
-        source: executive.id,
-        target: director.id,
+        id: `${orchestrator.id}-${specialist.id}`,
+        source: orchestrator.id,
+        target: specialist.id,
         animated: true,
         style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
       });
     });
 
-    // Connect directors to their specialists
-    directors.forEach(director => {
-      const directorArea = director.data.type.split('_')[0]; // e.g., 'sequence' from 'sequence_director'
-      const relatedSpecialists = specialists.filter(s => s.data.type.includes(directorArea));
-
-      relatedSpecialists.forEach(specialist => {
+    // Add lateral connections between related specialists
+    specialists.forEach((specialist, index) => {
+      const nextSpecialist = specialists[index + 1];
+      if (nextSpecialist) {
         edges.push({
-          id: `${director.id}-${specialist.id}`,
-          source: director.id,
-          target: specialist.id,
+          id: `${specialist.id}-${nextSpecialist.id}`,
+          source: specialist.id,
+          target: nextSpecialist.id,
           animated: true,
-          style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+          style: { 
+            stroke: 'hsl(var(--primary))', 
+            strokeWidth: 1,
+            strokeDasharray: '5,5' // Dashed line for peer connections
+          }
         });
-      });
+      }
     });
   }
 
@@ -217,21 +237,21 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
           <div className="space-y-3">
             <div>
               <h3 className="font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Hierarchical Structure
+                Multi-Agent Collaboration
               </h3>
               <p className="text-sm text-muted-foreground">
-                Executive → Directors → Specialists
+                Strategist → Orchestrator → Specialists
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-sm">Command Flow</h4>
+              <h4 className="font-medium text-sm">Information Flow</h4>
               <p className="text-sm text-muted-foreground">
-                Top-down direction, bottom-up feedback
+                Strategic direction and execution feedback
               </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">
-                Drag agents to rearrange • Scroll to zoom
+                Solid lines: Direct reporting • Dashed lines: Peer collaboration
               </p>
             </div>
           </div>

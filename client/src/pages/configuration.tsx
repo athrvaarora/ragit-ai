@@ -101,10 +101,10 @@ export default function Configuration() {
         <CardContent>
           <motion.div variants={item}>
             <div className="prose dark:prose-invert max-w-none mb-6">
-              <h3 className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              <h3 className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 Configuration Rationale
               </h3>
-              <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-sm">
+              <pre className="whitespace-pre-wrap bg-muted/50 backdrop-blur-sm p-4 rounded-lg text-sm text-foreground">
                 {rationale}
               </pre>
             </div>
@@ -119,14 +119,15 @@ export default function Configuration() {
                 <Card className="mb-4 bg-gradient-to-br from-card to-primary/5">
                   <CardContent className="pt-6">
                     <div className="mb-4">
-                      <h4 className="font-medium">Interaction Pattern:</h4>
+                      <h4 className="font-medium">Collaboration Pattern:</h4>
                       <p className="text-muted-foreground">{configuration.interactionFlow.pattern}</p>
                     </div>
                     <div className="mb-4">
-                      <h4 className="font-medium">Task Distribution:</h4>
+                      <h4 className="font-medium">Information Flow:</h4>
                       <ul className="list-disc pl-5 text-muted-foreground">
-                        <li>Strategy: {configuration.interactionFlow.taskDistribution.strategy}</li>
-                        <li>Routing: {configuration.interactionFlow.taskDistribution.routing}</li>
+                        <li>Top-down: Strategic directives and objectives</li>
+                        <li>Bottom-up: Execution feedback and insights</li>
+                        <li>Lateral: Peer-to-peer collaboration</li>
                       </ul>
                     </div>
                     <div>
