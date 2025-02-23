@@ -1,4 +1,4 @@
-import { Project, InsertProject, ProjectRequirements, AgentConfiguration } from "@shared/schema";
+import { Project, InsertProject } from "@shared/schema";
 
 export interface IStorage {
   createProject(project: InsertProject): Promise<Project>;
