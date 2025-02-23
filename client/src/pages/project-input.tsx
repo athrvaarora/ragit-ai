@@ -1,12 +1,11 @@
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ProjectForm } from "@/components/project-form";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Project, ProjectRequirements } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, Workflow, Sparkles } from "lucide-react";
+import { Bot } from "lucide-react";
 import { motion } from "framer-motion";
+import { ConfigWizard } from "@/components/config-wizard";
 
 const container = {
   hidden: { opacity: 0 },
@@ -69,40 +68,10 @@ export default function ProjectInput() {
       </motion.div>
 
       <motion.div variants={item}>
-        <Card className="max-w-2xl mx-auto bg-gradient-to-br from-card to-indigo-500/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-indigo-500" />
-              Create New Configuration
-            </CardTitle>
-            <CardDescription>
-              Describe your project and let AI generate an optimal RAG configuration
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4 mb-8 text-center">
-              <div className="p-4 rounded-lg bg-indigo-500/10">
-                <Bot className="w-6 h-6 mx-auto mb-2 text-indigo-500" />
-                <h3 className="font-medium">Smart Agents</h3>
-                <p className="text-sm text-muted-foreground">Specialized RAG agents</p>
-              </div>
-              <div className="p-4 rounded-lg bg-purple-500/10">
-                <Workflow className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                <h3 className="font-medium">Workflows</h3>
-                <p className="text-sm text-muted-foreground">Optimized interactions</p>
-              </div>
-              <div className="p-4 rounded-lg bg-pink-500/10">
-                <Sparkles className="w-6 h-6 mx-auto mb-2 text-pink-500" />
-                <h3 className="font-medium">Intelligence</h3>
-                <p className="text-sm text-muted-foreground">AI-driven config</p>
-              </div>
-            </div>
-            <ProjectForm
-              onSubmit={(data) => createProject.mutate(data)}
-              isLoading={createProject.isPending}
-            />
-          </CardContent>
-        </Card>
+        <ConfigWizard 
+          onSubmit={(data) => createProject.mutate(data)}
+          isLoading={createProject.isPending}
+        />
       </motion.div>
     </motion.div>
   );
