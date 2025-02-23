@@ -5,25 +5,7 @@ import { z } from "zod";
 // Schema for project requirements
 export const projectRequirementSchema = z.object({
   projectName: z.string().min(1, "Project name is required"),
-  projectGoal: z.string().min(10, "Please provide a detailed project goal"),
-  dataCharacteristics: z.object({
-    dataTypes: z.array(z.string()).min(1, "Select at least one data type"),
-    dataVolume: z.string(),
-    updateFrequency: z.string(),
-    structureType: z.string()
-  }),
-  queryRequirements: z.object({
-    queryTypes: z.array(z.string()).min(1, "Select at least one query type"),
-    complexity: z.string(),
-    expectedVolume: z.string(),
-    responseTimeNeeded: z.string()
-  }),
-  specialRequirements: z.array(z.string()).optional(),
-  outputFormat: z.object({
-    type: z.string(),
-    structure: z.string(),
-    citations: z.boolean()
-  })
+  projectDescription: z.string().min(50, "Please provide a detailed project description"),
 });
 
 // Schema for RAG agent configuration

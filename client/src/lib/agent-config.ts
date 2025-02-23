@@ -1,217 +1,183 @@
 import { ProjectRequirements, RagAgentConfiguration } from "@shared/schema";
 
-function determineOptimalAgentCount(requirements: ProjectRequirements): number {
-  const { queryRequirements, dataCharacteristics } = requirements;
-  let baseCount = 1;
+function analyzeProjectDescription(description: string): {
+  dataTypes: string[];
+  queryTypes: string[];
+  complexity: string;
+} {
+  // This is a simple analysis, in a real system this would use NLP
+  const dataTypes = [];
+  if (description.toLowerCase().includes("document")) dataTypes.push("Documents");
+  if (description.toLowerCase().includes("database")) dataTypes.push("Structured Data");
+  if (description.toLowerCase().includes("code")) dataTypes.push("Code");
+  if (description.toLowerCase().includes("web")) dataTypes.push("Web Content");
 
-  // Increase count based on query complexity
-  if (queryRequirements.complexity === "High") baseCount += 1;
+  const queryTypes = [];
+  if (description.toLowerCase().includes("question")) queryTypes.push("Question Answering");
+  if (description.toLowerCase().includes("extract")) queryTypes.push("Information Extraction");
+  if (description.toLowerCase().includes("summariz")) queryTypes.push("Summarization");
+  if (description.toLowerCase().includes("analys")) queryTypes.push("Analysis");
 
-  // Increase for high data volume
-  if (dataCharacteristics.dataVolume === "Large") baseCount += 1;
+  const complexity = queryTypes.length > 2 ? "High" : 
+                    queryTypes.length > 1 ? "Medium" : "Low";
 
-  // Increase for multiple data types
-  if (dataCharacteristics.dataTypes.length > 2) baseCount += 1;
-
-  return Math.min(baseCount, 5); // Cap at 5 agents
+  return {
+    dataTypes: dataTypes.length > 0 ? dataTypes : ["Documents"],
+    queryTypes: queryTypes.length > 0 ? queryTypes : ["Question Answering"],
+    complexity
+  };
 }
 
-function generatePromptTemplate(agentType: string, context: {
-  role: string;
-  responsibilities: string[];
-  dataTypes?: string[];
-  previousAgent?: string;
-  nextAgent?: string;
+function generateResearchPrompt(context: {
+  sources: string[];
+  domain: string;
 }): string {
-  const basePrompt = `You are a specialized RAG (Retrieval Augmented Generation) agent focused on ${context.role}.
+  return `You are a specialized research RAG agent focused on ${context.domain}.
 
-Key Responsibilities:
-${context.responsibilities.map(r => `- ${r}`).join('\n')}
+Primary Responsibilities:
+- Search through ${context.sources.join(", ")} for relevant information
+- Analyze and extract key insights from diverse data sources
+- Synthesize findings into structured outputs
 
-Interaction Context:
-${context.previousAgent ? `- Receives input from: ${context.previousAgent}` : '- Primary input handler'}
-${context.nextAgent ? `- Sends output to: ${context.nextAgent}` : '- Final output generator'}
+Knowledge Base Access:
+- Primary sources: ${context.sources.join(", ")}
+- Search strategy: Hybrid semantic + keyword search with relevance ranking
+- Context handling: Dynamic window with overlap
 
-Execution Guidelines:
-1. Context Management:
-   - Always maintain relevant context from knowledge base
-   - Track context window limitations
-   - Handle context overflow gracefully
+Tool Integration:
+- Vector store: Optimized for semantic similarity search
+- Document processor: Chunking with metadata preservation
+- Citation tracker: Inline source attribution with confidence scores
 
-2. Source Attribution:
-   - Cite specific sources for retrieved information
-   - Track confidence levels for retrieved content
-   - Maintain source metadata
+Output Requirements:
+- Format: JSON structured response with reasoning
+- Citation style: Inline with source metadata
+- Confidence indicators: Numeric scores with explanation`;
+}
 
-3. Chain of Thought:
-   - Document reasoning process
-   - Explain retrieval decisions
-   - Note any ambiguities or uncertainties
+function generateAnalysisPrompt(analysisType: string): string {
+  return `You are an analytical RAG agent specializing in ${analysisType}.
 
-Output Format:
-{
-  "reasoning": {
-    "contextAnalysis": "How you interpreted the input",
-    "retrievalStrategy": "How you searched the knowledge base",
-    "processingSteps": ["List of steps taken"]
-  },
-  "response": {
-    "content": "Your processed response",
-    "format": "specified_format"
-  },
-  "metadata": {
-    "sources": ["List of sources used"],
-    "confidence": 0.95,
-    "contextCoverage": "Complete/Partial"
-  }
-}`;
+Core Functions:
+- Process multi-modal inputs from research agent
+- Apply comprehensive analysis methods
+- Generate structured analytical insights
 
-  const agentSpecificPrompts = {
-    retriever: `
-Knowledge Base Interaction:
-- Sources: ${context.dataTypes?.join(', ')}
-- Primary search strategy: Semantic + keyword hybrid
-- Reranking approach: Relevance + recency
+Data Processing Protocol:
+1. Input validation: Schema-based validation with type checking
+2. Analysis steps: Multi-stage pipeline with intermediate validation
+3. Output formatting: Standardized JSON with metadata
 
-Retrieval Guidelines:
-1. Start with broad semantic search
-2. Refine with keyword matching
-3. Rerank based on relevance scores
-4. Chunk and format for next agent`,
+Tool Usage:
+- Analytics tools: NLP processor, pattern analyzer, insight generator
+- Processing pipeline: Sequential with parallel processing where possible
+- Quality checks: Automated validation at each step
 
-    processor: `
-Processing Guidelines:
-1. Extract key information from retrieved chunks
-2. Synthesize across multiple sources
-3. Handle conflicting information
-4. Format for final synthesis
+Special Instructions:
+- Maintain analysis chain-of-thought
+- Track confidence levels for each insight
+- Flag potential inconsistencies`;
+}
 
-Analysis Parameters:
-- Contradiction detection
-- Information synthesis
-- Cross-reference validation
-- Confidence scoring`,
+function generateSynthesisPrompt(agentList: string[]): string {
+  return `You are a synthesis RAG agent responsible for combining outputs.
 
-    synthesizer: `
-Synthesis Guidelines:
-1. Combine multiple agent outputs
-2. Resolve conflicts
-3. Ensure coherence
-4. Format final response
+Integration Responsibilities:
+- Combine inputs from ${agentList.join(", ")}
+- Resolve conflicts using hierarchical priority system
+- Generate unified coherent responses
 
-Quality Checks:
-- Consistency verification
-- Source alignment
-- Response completeness
-- Format compliance`
-  };
+Coordination Protocol:
+- Input handling: Validate and normalize all inputs
+- Conflict resolution: Use confidence scores and source reliability
+- Output validation: Schema compliance and consistency checks
 
-  return `${basePrompt}\n\n${agentSpecificPrompts[agentType as keyof typeof agentSpecificPrompts] || ''}`;
+Quality Controls:
+- Consistency checks: Cross-reference validation
+- Verification steps: Source alignment verification
+- Error handling: Graceful degradation with fallbacks
+
+Specific Requirements:
+- Track all source attributions
+- Maintain confidence scores
+- Provide reasoning chain`;
 }
 
 export function generateRagConfiguration(
   requirements: ProjectRequirements
 ): RagAgentConfiguration {
-  const agentCount = determineOptimalAgentCount(requirements);
+  const analysis = analyzeProjectDescription(requirements.projectDescription);
+
   const agents = [];
 
-  // Always include a primary retrieval agent
+  // Research Agent (Always included)
   agents.push({
-    type: "retriever",
-    role: "Knowledge Base Query Specialist",
+    type: "research",
+    role: "Information Retrieval and Research",
     responsibilities: [
-      "Execute semantic and keyword searches",
-      "Rank and filter results",
-      "Chunk content appropriately",
-      "Track source metadata"
+      "Search and retrieve relevant information",
+      "Extract key insights",
+      "Track sources and citations"
     ],
     knowledgeBase: {
-      sources: requirements.dataCharacteristics.dataTypes,
-      indexingStrategy: "hybrid_embedding_keyword",
-      retrievalMethod: "semantic_search_with_reranking"
+      sources: analysis.dataTypes,
+      indexingStrategy: "hybrid_semantic_keyword",
+      retrievalMethod: "relevance_ranked_retrieval"
     },
-    promptTemplate: generatePromptTemplate("retriever", {
-      role: "Knowledge Base Query Specialist",
-      responsibilities: [
-        "Execute semantic and keyword searches",
-        "Rank and filter results",
-        "Chunk content appropriately",
-        "Track source metadata"
-      ],
-      dataTypes: requirements.dataCharacteristics.dataTypes,
-      nextAgent: "Content Processor"
+    promptTemplate: generateResearchPrompt({
+      sources: analysis.dataTypes,
+      domain: requirements.projectName
     }),
-    tooling: ["vector_store", "semantic_search", "reranking"]
+    tooling: ["vector_store", "document_processor", "citation_tracker"]
   });
 
-  // Add processors based on requirements
-  if (agentCount >= 2) {
+  // Analysis Agent (for medium/high complexity)
+  if (analysis.complexity !== "Low") {
     agents.push({
-      type: "processor",
-      role: "Content Analysis & Synthesis",
+      type: "analysis",
+      role: "Content Analysis and Insight Generation",
       responsibilities: [
-        "Extract key information",
-        "Analyze relationships",
-        "Identify patterns",
-        "Generate insights"
+        "Process retrieved content",
+        "Generate insights",
+        "Identify patterns"
       ],
       knowledgeBase: {
-        sources: ["processed_retrieval_results"],
+        sources: ["research_output"],
         indexingStrategy: "semantic_chunking",
-        retrievalMethod: "contextual_analysis"
+        retrievalMethod: "context_aware_analysis"
       },
-      promptTemplate: generatePromptTemplate("processor", {
-        role: "Content Analysis & Synthesis",
-        responsibilities: [
-          "Extract key information",
-          "Analyze relationships",
-          "Identify patterns",
-          "Generate insights"
-        ],
-        previousAgent: "Knowledge Base Query Specialist",
-        nextAgent: "Response Synthesizer"
-      }),
-      tooling: ["nlp_processor", "entity_extractor", "summarizer"]
+      promptTemplate: generateAnalysisPrompt(analysis.queryTypes.join(" and ")),
+      tooling: ["nlp_processor", "insight_generator", "pattern_analyzer"]
     });
   }
 
-  // Add synthesizer for complex scenarios
-  if (agentCount >= 3) {
+  // Synthesis Agent (for high complexity)
+  if (analysis.complexity === "High") {
     agents.push({
-      type: "synthesizer",
-      role: "Response Integration & Formatting",
+      type: "synthesis",
+      role: "Response Integration and Formatting",
       responsibilities: [
-        "Combine multiple inputs",
+        "Combine agent outputs",
         "Resolve conflicts",
-        "Ensure coherence",
-        "Format final output"
+        "Format final response"
       ],
       knowledgeBase: {
-        sources: ["processed_analysis_results"],
-        indexingStrategy: "response_templates",
-        retrievalMethod: "template_matching"
+        sources: ["agent_outputs"],
+        indexingStrategy: "template_based",
+        retrievalMethod: "priority_based_synthesis"
       },
-      promptTemplate: generatePromptTemplate("synthesizer", {
-        role: "Response Integration & Formatting",
-        responsibilities: [
-          "Combine multiple inputs",
-          "Resolve conflicts",
-          "Ensure coherence",
-          "Format final output"
-        ],
-        previousAgent: "Content Analysis & Synthesis"
-      }),
-      tooling: ["response_formatter", "consistency_checker", "template_engine"]
+      promptTemplate: generateSynthesisPrompt(agents.map(a => a.role)),
+      tooling: ["response_formatter", "conflict_resolver", "consistency_checker"]
     });
   }
 
   return {
     agents,
     interactionFlow: {
-      pattern: agentCount > 1 ? "hierarchical" : "single",
+      pattern: agents.length > 1 ? "hierarchical" : "single",
       taskDistribution: {
-        strategy: "capability_based",
-        routing: "dynamic"
+        strategy: "sequential",
+        routing: "confidence_based"
       },
       errorHandling: {
         strategy: "fallback_chain",
@@ -222,42 +188,41 @@ export function generateRagConfiguration(
 }
 
 export function getAgentRationale(requirements: ProjectRequirements): string {
-  const agentCount = determineOptimalAgentCount(requirements);
-  const complexityFactors = [];
+  const analysis = analyzeProjectDescription(requirements.projectDescription);
 
-  if (requirements.queryRequirements.complexity === "High") {
-    complexityFactors.push("High query complexity requiring sophisticated processing");
-  }
-  if (requirements.dataCharacteristics.dataVolume === "Large") {
-    complexityFactors.push("Large data volume requiring distributed processing");
-  }
-  if (requirements.dataCharacteristics.dataTypes.length > 2) {
-    complexityFactors.push("Multiple data types requiring specialized handling");
-  }
+  return `Based on your project description, I recommend the following RAG agent configuration:
 
-  return `Based on your requirements:
-- Data Types: ${requirements.dataCharacteristics.dataTypes.join(", ")}
-- Data Volume: ${requirements.dataCharacteristics.dataVolume}
-- Query Complexity: ${requirements.queryRequirements.complexity}
-- Update Frequency: ${requirements.dataCharacteristics.updateFrequency}
+Project Analysis:
+- Detected Data Types: ${analysis.dataTypes.join(", ")}
+- Query Types: ${analysis.queryTypes.join(", ")}
+- Complexity Level: ${analysis.complexity}
 
-Recommended ${agentCount} RAG agent(s) due to:
-${complexityFactors.map(factor => `- ${factor}`).join('\n')}
+Recommended Agent Structure:
+${analysis.complexity === "High" ? `1. Research Agent (Primary Information Retrieval)
+   - Handles initial data retrieval and source tracking
+   - Implements comprehensive search strategy
 
-Agent Roles and Interaction Pattern:
-${agentCount >= 1 ? "1. Knowledge Base Query Specialist (Primary Retriever)\n   - Handles initial data retrieval and chunking\n   - Implements hybrid search strategy" : ""}
-${agentCount >= 2 ? "\n2. Content Analyzer\n   - Processes retrieved content\n   - Extracts key information and patterns" : ""}
-${agentCount >= 3 ? "\n3. Response Synthesizer\n   - Combines outputs from other agents\n   - Ensures coherent final responses" : ""}
+2. Analysis Agent (Content Processing)
+   - Processes retrieved content
+   - Generates insights and patterns
 
-Task Delegation Strategy:
-- Sequential processing with feedback loops
-- Dynamic routing based on query complexity
-- Automatic fallback mechanisms
-- Source attribution tracking
+3. Synthesis Agent (Integration)
+   - Combines outputs from other agents
+   - Ensures coherent final responses` :
+analysis.complexity === "Medium" ? `1. Research Agent (Primary Information Retrieval)
+   - Handles data retrieval and initial processing
+   - Maintains source tracking
 
-This configuration optimizes for:
-- Query response accuracy
-- Processing efficiency
-- Source traceability
-- Result consistency`;
+2. Analysis Agent (Content Processing)
+   - Processes content and generates insights
+   - Formats final responses` :
+`1. Research Agent (All-in-One)
+   - Handles complete information pipeline
+   - Generates direct responses`}
+
+This configuration is optimized for:
+- Comprehensive information retrieval
+- ${analysis.complexity !== "Low" ? "Deep content analysis" : "Basic content processing"}
+- Clear source attribution
+- ${analysis.complexity === "High" ? "Complex query handling" : "Straightforward response generation"}`;
 }
