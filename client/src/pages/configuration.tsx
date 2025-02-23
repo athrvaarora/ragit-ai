@@ -60,8 +60,8 @@ export default function Configuration() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{project.name}</CardTitle>
-              <CardDescription>RAG Agent Configuration</CardDescription>
+              <CardTitle>RAG Agent Configuration</CardTitle>
+              <CardDescription>{project.name}</CardDescription>
             </div>
             <Button
               onClick={() => generateConfig.mutate()}
@@ -81,31 +81,77 @@ export default function Configuration() {
 
           {configuration.agents.length > 0 ? (
             <>
-              <h3 className="text-lg font-semibold mb-4">Agent Interaction Flow</h3>
-              <AgentFlow configuration={configuration} />
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4">Agent Interaction Flow</h3>
+                <Card className="mb-4">
+                  <CardContent className="pt-6">
+                    <div className="mb-4">
+                      <h4 className="font-medium">Interaction Pattern:</h4>
+                      <p className="text-muted-foreground">{configuration.interactionFlow.pattern}</p>
+                    </div>
+                    <div className="mb-4">
+                      <h4 className="font-medium">Task Distribution:</h4>
+                      <ul className="list-disc pl-5 text-muted-foreground">
+                        <li>Strategy: {configuration.interactionFlow.taskDistribution.strategy}</li>
+                        <li>Routing: {configuration.interactionFlow.taskDistribution.routing}</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Error Handling:</h4>
+                      <ul className="list-disc pl-5 text-muted-foreground">
+                        <li>Strategy: {configuration.interactionFlow.errorHandling.strategy}</li>
+                        <li>Fallback: {configuration.interactionFlow.errorHandling.fallbackBehavior}</li>
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+                <AgentFlow configuration={configuration} />
+              </div>
 
-              <div className="mt-6 space-y-4">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Agent Details</h3>
                 {configuration.agents.map((agent, index) => (
-                  <Card key={index}>
-                    <CardHeader>
+                  <Card key={index} className="overflow-hidden">
+                    <CardHeader className="bg-muted">
                       <CardTitle>{agent.role}</CardTitle>
                       <CardDescription>{agent.type}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <h4 className="font-medium">Responsibilities:</h4>
-                        <ul className="list-disc pl-5">
-                          {agent.responsibilities.map((resp, i) => (
-                            <li key={i}>{resp}</li>
-                          ))}
-                        </ul>
+                    <CardContent className="pt-6">
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium mb-2">Responsibilities:</h4>
+                          <ul className="list-disc pl-5 text-muted-foreground">
+                            {agent.responsibilities.map((resp, i) => (
+                              <li key={i}>{resp}</li>
+                            ))}
+                          </ul>
+                        </div>
 
-                        <h4 className="font-medium mt-4">Knowledge Base:</h4>
-                        <div className="bg-muted p-3 rounded">
-                          <p>Sources: {agent.knowledgeBase.sources.join(", ")}</p>
-                          <p>Indexing: {agent.knowledgeBase.indexingStrategy}</p>
-                          <p>Retrieval: {agent.knowledgeBase.retrievalMethod}</p>
+                        <div>
+                          <h4 className="font-medium mb-2">Knowledge Base Configuration:</h4>
+                          <div className="bg-muted p-4 rounded-lg space-y-2">
+                            <p><span className="font-medium">Sources:</span> {agent.knowledgeBase.sources.join(", ")}</p>
+                            <p><span className="font-medium">Indexing Strategy:</span> {agent.knowledgeBase.indexingStrategy}</p>
+                            <p><span className="font-medium">Retrieval Method:</span> {agent.knowledgeBase.retrievalMethod}</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium mb-2">Tools:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {agent.tooling.map((tool, i) => (
+                              <span key={i} className="px-2 py-1 bg-primary/10 text-primary rounded text-sm">
+                                {tool}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium mb-2">Prompt Template:</h4>
+                          <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-sm overflow-auto max-h-96">
+                            {agent.promptTemplate}
+                          </pre>
                         </div>
                       </div>
                     </CardContent>
