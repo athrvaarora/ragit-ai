@@ -2,122 +2,148 @@ import { ProjectRequirements, RagAgentConfiguration } from "@shared/schema";
 
 function determineAgentHierarchy(description: string): string[] {
   const agentTypes = new Set<string>();
+  const desc = description.toLowerCase();
 
-  // Core RAG Agents based on functionality
-  if (description.toLowerCase().includes("retriev") || description.toLowerCase().includes("search")) {
-    agentTypes.add("retrieval_agent");
-  }
-  if (description.toLowerCase().includes("analy") || description.toLowerCase().includes("process")) {
-    agentTypes.add("analysis_agent");
-  }
-  if (description.toLowerCase().includes("generat") || description.toLowerCase().includes("create")) {
-    agentTypes.add("generation_agent");
-  }
-  if (description.toLowerCase().includes("summar") || description.toLowerCase().includes("extract")) {
-    agentTypes.add("summarization_agent");
+  // Function to identify agent types based on task descriptions
+  function identifyAgentTypes(text: string) {
+    const taskPatterns = {
+      // Case Law and Research
+      'case_research': ['case law', 'legal articles', 'precedents', 'research'],
+      'statutory_analysis': ['statutory', 'regulations', 'laws', 'amendments'],
+      'document_analysis': ['document', 'read', 'analyze', 'review'],
+      'insight_generation': ['insights', 'analysis', 'assess', 'evaluate'],
+      'strategy_development': ['strategy', 'plan', 'approach', 'recommend'],
+      'content_generation': ['draft', 'write', 'generate', 'create']
+    };
+
+    // Check each pattern against the description
+    Object.entries(taskPatterns).forEach(([agentType, keywords]) => {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        agentTypes.add(agentType);
+      }
+    });
   }
 
-  // Always include strategy agent for coordination
-  agentTypes.add("strategy_agent");
+  // Analyze main description
+  identifyAgentTypes(desc);
 
   return Array.from(agentTypes);
 }
 
 function generateAgentPrompt(type: string, context: {
   projectName: string;
-  domain: string;
+  description: string;
 }): string {
-  const prompts: Record<string, string> = {
-    strategy_agent: `As the Strategic Coordinator for ${context.projectName}, this agent orchestrates the overall RAG system operation. It analyzes incoming queries, determines the optimal sequence of agent interactions, and ensures coherent output generation.
+  // Create dynamic prompts based on agent type and project context
+  const basePrompt = `As a specialized agent in the ${context.projectName} system, this component focuses on `;
 
-The agent maintains a high-level view of all operations, coordinating the retrieval, analysis, and generation processes. It dynamically adjusts the workflow based on query complexity and required output format, ensuring optimal resource utilization and result quality.
+  const roleDescriptions: Record<string, string> = {
+    case_research: `retrieving and organizing relevant case law and legal precedents. 
 
-Through its strategic planning tools, this agent optimizes the interaction between specialized agents. The performance analyzer provides insights into system effectiveness, while the workflow optimizer enables dynamic adjustment of processing pipelines based on real-time feedback.`,
+This agent specializes in searching through legal databases, identifying relevant cases, and extracting pertinent legal arguments and rulings. It uses sophisticated vector search capabilities to find cases based on legal concepts and fact patterns rather than just keyword matches.
 
-    retrieval_agent: `Operating as the Information Retrieval Specialist for ${context.projectName}, this agent excels at efficient and accurate information retrieval from various knowledge sources. It handles query preprocessing, source selection, and relevance ranking.
+The agent maintains a comprehensive understanding of legal citation formats and jurisdictional hierarchies, ensuring that retrieved materials are both relevant and authoritative. It works closely with other agents to ensure that discovered cases directly support the legal analysis being conducted.`,
 
-The agent employs sophisticated retrieval algorithms to ensure comprehensive yet focused information gathering. It works closely with other agents to refine search parameters and improve result relevance based on context and requirements.
+    statutory_analysis: `analyzing and interpreting statutory laws and regulations. 
 
-Using advanced search optimization tools, this agent ensures efficient information retrieval while maintaining result quality. The source validator ensures information accuracy, while the context analyzer helps maintain relevance to the current query.`,
+This agent focuses on understanding legislative intent, tracking amendments, and identifying relevant regulations that impact the current case. It maintains awareness of recent legal changes and their potential implications.
 
-    analysis_agent: `Serving as the Analysis Expert for ${context.projectName}, this agent specializes in processing and analyzing retrieved information. It identifies patterns, extracts key insights, and provides structured analysis of complex data.
+The agent excels at cross-referencing statutes with case law interpretations, ensuring a comprehensive understanding of how laws are applied in practice. It coordinates with other agents to provide a complete legal framework for analysis.`,
 
-The agent applies various analytical techniques to transform raw information into actionable insights. It coordinates with other agents to ensure analysis aligns with query requirements and supports final output generation.
+    document_analysis: `processing and analyzing legal documents and case materials. 
 
-Through its analytical toolkit, this agent performs deep analysis of retrieved content. The pattern detector identifies key trends, while the insight generator produces meaningful conclusions from analyzed data.`,
+This agent specializes in extracting key information from complex legal documents, identifying crucial arguments, and understanding procedural history. It employs advanced document processing techniques to handle various document formats and structures.
 
-    summarization_agent: `Acting as the Summarization Specialist for ${context.projectName}, this agent focuses on condensing and clarifying complex information. It creates concise, coherent summaries while preserving key information and context.
+The agent works systematically to break down complex legal documents into analyzable components, identifying key legal issues, factual backgrounds, and judicial reasoning.`,
 
-The agent excels at identifying core concepts and critical details, producing summaries that match user requirements. It works with other agents to ensure summaries reflect the most relevant insights and maintain proper context.
+    insight_generation: `generating analytical insights from legal research materials. 
 
-Using advanced summarization tools, this agent produces clear and focused content. The relevance analyzer ensures key points are preserved, while the clarity checker maintains readability and coherence.`,
+This agent focuses on synthesizing information from multiple sources to produce meaningful legal insights. It identifies patterns in legal reasoning, tracks evolutionary changes in legal interpretation, and highlights potential arguments and counter-arguments.
 
-    generation_agent: `Operating as the Content Generation Expert for ${context.projectName}, this agent specializes in producing coherent and contextually appropriate outputs. It transforms analyzed information into well-structured, relevant content.
+The agent excels at connecting disparate pieces of legal information to form coherent legal theories and arguments.`,
 
-The agent focuses on generating content that effectively communicates insights and answers. It coordinates with other agents to ensure generated content accurately reflects retrieved information and analysis results.
+    strategy_development: `developing legal strategies based on comprehensive research and analysis. 
 
-Through its generation toolkit, this agent creates high-quality outputs. The content structurer ensures logical organization, while the quality validator maintains output standards.`
+This agent specializes in formulating legal approaches by combining insights from case law, statutory analysis, and document review. It evaluates the strength of legal positions and suggests optimal argumentative strategies.
+
+The agent considers both legal precedent and practical implications when developing strategic recommendations.`,
+
+    content_generation: `creating well-structured legal documents and summaries. 
+
+This agent focuses on producing clear, concise, and legally sound documentation. It transforms complex legal analysis into readable and persuasive content, ensuring proper citation and professional formatting.
+
+The agent maintains consistency in legal argumentation while adapting the writing style to the intended audience and purpose.`
   };
 
-  return prompts[type] || `Role: ${type} Agent\n\nDetailed prompt not yet implemented.`;
+  return basePrompt + (roleDescriptions[type] || 'executing specialized tasks within the workflow.');
 }
 
 function generateToolset(type: string): string[] {
   const toolsets: Record<string, string[]> = {
-    strategy_agent: [
-      "query_analyzer",        // Analyzes and breaks down complex queries
-      "workflow_planner",      // Plans agent interaction sequences
-      "resource_allocator",    // Optimizes resource distribution
-      "performance_monitor"    // Tracks system performance
+    case_research: [
+      "precedent_finder",      // Searches and retrieves relevant case law
+      "citation_validator",    // Validates and formats legal citations
+      "relevance_scorer",      // Scores cases by relevance to current matter
+      "jurisdiction_filter"    // Filters cases by jurisdictional authority
     ],
-    retrieval_agent: [
-      "query_optimizer",       // Optimizes search queries
-      "source_selector",       // Selects appropriate knowledge sources
-      "relevance_ranker",      // Ranks results by relevance
-      "context_preserver"      // Maintains search context
+    statutory_analysis: [
+      "statute_tracker",       // Tracks statutory amendments and changes
+      "regulation_mapper",     // Maps relationships between laws and regulations
+      "compliance_checker",    // Checks regulatory compliance requirements
+      "impact_analyzer"        // Analyzes impact of legal changes
     ],
-    analysis_agent: [
-      "pattern_detector",      // Identifies patterns in data
-      "relationship_mapper",   // Maps relationships between concepts
-      "insight_extractor",     // Extracts key insights
-      "validation_checker"     // Validates analysis results
+    document_analysis: [
+      "content_extractor",     // Extracts key information from documents
+      "structure_analyzer",    // Analyzes document structure and organization
+      "reference_linker",      // Links related documents and references
+      "format_processor"       // Processes different document formats
     ],
-    summarization_agent: [
-      "key_point_extractor",   // Identifies key information
-      "context_maintainer",    // Preserves essential context
-      "clarity_enhancer",      // Improves readability
-      "consistency_checker"    // Ensures summary consistency
+    insight_generation: [
+      "pattern_identifier",    // Identifies patterns in legal reasoning
+      "argument_mapper",       // Maps legal arguments and counter-arguments
+      "trend_analyzer",        // Analyzes legal trends and developments
+      "insight_synthesizer"    // Synthesizes insights from multiple sources
     ],
-    generation_agent: [
-      "content_structurer",    // Structures output content
-      "coherence_checker",     // Ensures output coherence
-      "style_adapter",         // Adapts output style
-      "quality_validator"      // Validates output quality
+    strategy_development: [
+      "strategy_formulator",   // Formulates legal strategies
+      "risk_assessor",        // Assesses legal risks and opportunities
+      "approach_optimizer",    // Optimizes strategic approaches
+      "outcome_predictor"      // Predicts potential outcomes
+    ],
+    content_generation: [
+      "document_composer",     // Composes legal documents
+      "citation_formatter",    // Formats legal citations
+      "style_adapter",        // Adapts writing style for audience
+      "quality_checker"       // Checks document quality and consistency
     ]
   };
 
-  return toolsets[type] || ["default_toolkit"];
+  return toolsets[type] || [
+    "task_processor",
+    "quality_validator",
+    "integration_handler",
+    "output_optimizer"
+  ];
 }
 
-// Agent Collaboration Overview
 function getAgentCollaborationOverview(): string {
-  return `The RAG system operates through a coordinated network of specialized agents:
+  return `The multi-agent RAG system operates through a coordinated network of specialized agents, each focusing on specific aspects of the overall task. 
 
-The Strategy Agent serves as the system coordinator, managing query processing and agent interactions. It analyzes requirements and orchestrates the optimal workflow for each query.
+The agents work together in a hierarchical structure:
+1. Strategic Level: Coordinates overall workflow and resource allocation
+2. Processing Level: Handles specialized information processing tasks
+3. Generation Level: Produces final outputs and deliverables
 
-The specialized agents work together in a coordinated pipeline:
-- The Retrieval Agent fetches relevant information from knowledge sources
-- The Analysis Agent processes and extracts insights from retrieved information
-- The Summarization Agent condenses complex information while preserving key points
-- The Generation Agent produces final outputs based on processed information
+Information flows both vertically and horizontally:
+- Vertical: Strategic direction flows down, results and feedback flow up
+- Horizontal: Peer agents collaborate and share information at their respective levels
 
-This agent network ensures:
-- Efficient information processing
-- Comprehensive analysis
-- Clear and relevant outputs
-- Adaptable workflows
+The system maintains flexibility to adapt to different project requirements while ensuring consistent quality and efficiency in output generation.
 
-Each agent maintains constant communication with the Strategy Agent, providing feedback and receiving guidance for optimal system performance.`;
+Key collaboration patterns:
+- Parallel Processing: Multiple agents can work simultaneously on different aspects
+- Sequential Processing: Results flow from one agent to another in a logical sequence
+- Feedback Loops: Continuous improvement through performance monitoring and adjustment`;
 }
 
 export function generateRagConfiguration(
@@ -138,7 +164,7 @@ export function generateRagConfiguration(
       },
       promptTemplate: generateAgentPrompt(type, {
         projectName: requirements.projectName,
-        domain: "general"
+        description: requirements.projectDescription
       }),
       tooling: generateToolset(type)
     };
@@ -164,31 +190,28 @@ export function generateRagConfiguration(
 export function getAgentRationale(requirements: ProjectRequirements): string {
   const agentTypes = determineAgentHierarchy(requirements.projectDescription);
 
-  const hierarchy = {
-    strategy: agentTypes.filter(t => t.includes('strategy')),
-    core: agentTypes.filter(t => !t.includes('strategy'))
-  };
+  const agentDescriptions = agentTypes.map(type => {
+    const readableName = type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    const tools = generateToolset(type);
+    return `${readableName} Agent:
+- Primary Focus: ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} operations
+- Key Tools: ${tools.join(', ')}`;
+  }).join('\n\n');
 
-  return `Based on your project requirements for ${requirements.projectName}, I've designed a RAG agent structure:
+  return `Based on the project requirements for ${requirements.projectName}, I've identified the need for ${agentTypes.length} specialized RAG agents:
 
-Strategy Level:
-${hierarchy.strategy.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
-Primary role: System coordination and workflow optimization
-
-Specialized Agents:
-${hierarchy.core.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
-Primary roles: Specialized information processing and generation
+${agentDescriptions}
 
 Interaction Pattern: Orchestrated
-- Centrally coordinated through Strategy Agent
-- Dynamic task routing based on query requirements
+- Agents work together in a coordinated workflow
+- Dynamic task routing based on agent capabilities
 - Continuous feedback and adaptation
 - Comprehensive error handling
 
-This structure ensures:
-- Efficient query processing
-- Specialized task handling
+This configuration ensures:
+- Efficient task processing
 - Clear responsibility delegation
+- Specialized expertise utilization
 - Scalable operations
 
 ${getAgentCollaborationOverview()}`;
