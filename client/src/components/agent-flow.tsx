@@ -27,7 +27,7 @@ interface AgentFlowProps {
   configuration: RagAgentConfiguration;
 }
 
-// Custom node component to show agent details
+// Update the tool display in the AgentNode component
 function AgentNode({ data }: NodeProps) {
   return (
     <TooltipProvider>
@@ -53,16 +53,23 @@ function AgentNode({ data }: NodeProps) {
               </Badge>
             </div>
             <div className="flex flex-wrap gap-2 mb-2">
-              {data.tools.map((tool: string, i: number) => (
+              {data.tools.map((tool: any, i: number) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                 >
-                  <Badge variant="outline" className="text-xs border-primary/20 bg-primary/5">
-                    {tool}
-                  </Badge>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="text-xs border-primary/20 bg-primary/5">
+                        {tool.name}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p className="text-sm">{tool.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </motion.div>
               ))}
             </div>
@@ -94,16 +101,16 @@ function AgentNode({ data }: NodeProps) {
               </ul>
             </div>
             <div>
-              <p className="font-medium mb-1">Knowledge Base:</p>
+              <p className="font-medium mb-1">Tools:</p>
               <ul className="list-disc pl-4 text-sm space-y-1">
-                {data.knowledgeBase.sources.map((source: string, i: number) => (
+                {data.tools.map((tool: any, i: number) => (
                   <motion.li
                     key={i}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
                   >
-                    {source}
+                    <span className="font-medium">{tool.name}:</span> {tool.description}
                   </motion.li>
                 ))}
               </ul>

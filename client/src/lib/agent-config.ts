@@ -67,47 +67,119 @@ Using comprehensive tracking and monitoring tools, this agent maintains accurate
   return prompts[type] || `Role: ${type} Agent\n\nDetailed prompt not yet implemented.`;
 }
 
-function generateToolset(type: string): string[] {
-  const toolsets: Record<string, string[]> = {
+function generateToolset(type: string): Array<{ name: string; description: string }> {
+  const toolsets: Record<string, Array<{ name: string; description: string }>> = {
     recruitment_strategist: [
-      "campaign_planner",         // Plans and coordinates recruitment campaigns, sets goals and KPIs
-      "resource_optimizer",       // Optimizes resource allocation across recruitment efforts
-      "performance_analyzer",     // Analyzes overall campaign performance and success metrics
-      "strategy_adjuster"         // Makes real-time adjustments to recruitment strategies
+      {
+        name: "campaign_planner",
+        description: "Designs comprehensive recruitment campaigns with defined goals, target profiles, and success metrics"
+      },
+      {
+        name: "resource_optimizer",
+        description: "Allocates and balances resources across multiple recruitment campaigns for maximum efficiency"
+      },
+      {
+        name: "performance_analyzer",
+        description: "Tracks and analyzes campaign performance metrics to identify optimization opportunities"
+      },
+      {
+        name: "strategy_adjuster",
+        description: "Dynamically modifies recruitment strategies based on real-time performance data"
+      }
     ],
     outreach_orchestrator: [
-      "sequence_designer",        // Designs multi-channel outreach sequences
-      "timing_optimizer",         // Determines optimal timing for each outreach step
-      "channel_coordinator",      // Manages and coordinates different outreach channels
-      "response_tracker"          // Tracks and analyzes candidate responses
+      {
+        name: "sequence_designer",
+        description: "Creates personalized multi-channel outreach sequences with optimal touchpoints"
+      },
+      {
+        name: "timing_optimizer",
+        description: "Determines the best timing for each outreach step based on recipient behavior"
+      },
+      {
+        name: "channel_coordinator",
+        description: "Manages and synchronizes communication across different outreach channels"
+      },
+      {
+        name: "response_tracker",
+        description: "Monitors and analyzes candidate responses to optimize future interactions"
+      }
     ],
     candidate_profiler: [
-      "profile_analyzer",         // Analyzes candidate profiles and experience
-      "skill_matcher",           // Matches candidate skills with job requirements
-      "sentiment_predictor",      // Predicts candidate response likelihood
-      "engagement_scorer"         // Scores potential candidate engagement
+      {
+        name: "profile_analyzer",
+        description: "Deep analysis of candidate profiles to extract relevant skills and experience"
+      },
+      {
+        name: "skill_matcher",
+        description: "Matches candidate skills and experience with job requirements"
+      },
+      {
+        name: "sentiment_predictor",
+        description: "Predicts candidate response likelihood based on profile analysis"
+      },
+      {
+        name: "engagement_scorer",
+        description: "Scores candidates based on likelihood of positive engagement"
+      }
     ],
     message_composer: [
-      "template_customizer",      // Customizes message templates for each candidate
-      "tone_analyzer",           // Ensures appropriate tone and style
-      "personalization_engine",   // Adds personal touches to messages
-      "compliance_checker"        // Ensures messages meet recruitment guidelines
+      {
+        name: "template_customizer",
+        description: "Adapts message templates based on candidate profiles and campaign goals"
+      },
+      {
+        name: "tone_analyzer",
+        description: "Ensures message tone matches company brand and candidate preferences"
+      },
+      {
+        name: "personalization_engine",
+        description: "Adds relevant personal touches to messages based on candidate data"
+      },
+      {
+        name: "compliance_checker",
+        description: "Verifies messages comply with recruitment standards and guidelines"
+      }
     ],
     engagement_specialist: [
-      "response_analyzer",        // Analyzes candidate responses
-      "follow_up_generator",      // Generates appropriate follow-up messages
-      "interest_gauge",          // Measures candidate interest levels
-      "conversation_manager"      // Manages ongoing conversations
+      {
+        name: "response_analyzer",
+        description: "Analyzes candidate responses to determine engagement level and interest"
+      },
+      {
+        name: "follow_up_generator",
+        description: "Creates contextually appropriate follow-up messages based on previous interactions"
+      },
+      {
+        name: "interest_gauge",
+        description: "Measures and tracks candidate interest levels throughout the engagement"
+      },
+      {
+        name: "conversation_manager",
+        description: "Maintains conversation context and ensures timely follow-ups"
+      }
     ],
     pipeline_tracker: [
-      "status_monitor",          // Monitors candidate pipeline status
-      "progress_tracker",        // Tracks candidates through recruitment stages
-      "milestone_alerter",       // Alerts on important recruitment milestones
-      "pipeline_optimizer"        // Optimizes recruitment pipeline flow
+      {
+        name: "status_monitor",
+        description: "Tracks real-time status of candidates in the recruitment pipeline"
+      },
+      {
+        name: "progress_tracker",
+        description: "Monitors candidate progression through recruitment stages"
+      },
+      {
+        name: "milestone_alerter",
+        description: "Sends notifications for important recruitment pipeline events"
+      },
+      {
+        name: "pipeline_optimizer",
+        description: "Suggests improvements to recruitment pipeline based on performance data"
+      }
     ]
   };
 
-  return toolsets[type] || ["default_toolkit"];
+  return toolsets[type] || [{ name: "default_tool", description: "Basic functionality for agent operations" }];
 }
 
 // Agent Collaboration Overview
