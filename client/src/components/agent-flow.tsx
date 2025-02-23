@@ -27,8 +27,30 @@ interface AgentFlowProps {
   configuration: RagAgentConfiguration;
 }
 
-// Update the tool display in the AgentNode component
+// Placeholder function -  replace with actual implementation
+const generateToolset = (agentType: string) => {
+  // This is a placeholder, replace with your actual logic to fetch tool details.
+  // For example, you might fetch from an API based on agentType.
+  const toolData = {
+    "specialist-1": [
+      { name: "Tool A", description: "Description of Tool A" },
+      { name: "Tool B", description: "Description of Tool B" }
+    ],
+    "specialist-2": [
+      { name: "Tool C", description: "Description of Tool C" },
+      { name: "Tool D", description: "Description of Tool D" }
+    ],
+    // Add more agent types and their tools here...
+  };
+  return toolData[agentType] || [];
+};
+
+
+// Updated AgentNode component
 function AgentNode({ data }: NodeProps) {
+  // Get the full tool details including descriptions
+  const toolDetails = generateToolset(data.type);
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -53,7 +75,7 @@ function AgentNode({ data }: NodeProps) {
               </Badge>
             </div>
             <div className="flex flex-wrap gap-2 mb-2">
-              {data.tools.map((tool: any, i: number) => (
+              {toolDetails.map((tool, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 10 }}
@@ -86,24 +108,9 @@ function AgentNode({ data }: NodeProps) {
         <TooltipContent side="right" className="max-w-sm">
           <div className="space-y-2">
             <div>
-              <p className="font-medium mb-1">Responsibilities:</p>
-              <ul className="list-disc pl-4 text-sm space-y-1">
-                {data.responsibilities.map((resp: string, i: number) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    {resp}
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-            <div>
               <p className="font-medium mb-1">Tools:</p>
               <ul className="list-disc pl-4 text-sm space-y-1">
-                {data.tools.map((tool: any, i: number) => (
+                {toolDetails.map((tool, i) => (
                   <motion.li
                     key={i}
                     initial={{ opacity: 0, x: -10 }}
