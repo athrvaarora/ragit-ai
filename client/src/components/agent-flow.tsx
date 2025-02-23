@@ -125,20 +125,20 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
     let x = 0;
     let y = 0;
 
-    // Position based on agent role in the hierarchy
-    if (agent.type.includes('strategist')) {
+    // Position based on agent type
+    if (agent.type.includes('chat_processor')) {
       x = 350; // Center
       y = 50;  // Top
-    } else if (agent.type.includes('orchestrator')) {
+    } else if (agent.type.includes('sequence_designer')) {
       x = 350; // Center
       y = 200; // Middle
     } else {
       // Calculate position for specialist agents in a semi-circle below
       const specialistCount = configuration.agents.filter(a => 
-        !a.type.includes('strategist') && !a.type.includes('orchestrator')
+        !a.type.includes('chat_processor') && !a.type.includes('sequence_designer')
       ).length;
       const specialistIndex = configuration.agents.filter(a => 
-        !a.type.includes('strategist') && !a.type.includes('orchestrator')
+        !a.type.includes('chat_processor') && !a.type.includes('sequence_designer')
       ).findIndex(a => a.type === agent.type);
 
       // Create a semi-circle arrangement
@@ -171,51 +171,66 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
     setNodes((nds) => applyNodeChanges(changes, nds));
   };
 
-  // Create edges based on the collaboration model
+  // Create edges based on agent interactions
   const edges: Edge[] = [];
-  const strategist = nodes.find(n => n.data.type.includes('strategist'));
-  const orchestrator = nodes.find(n => n.data.type.includes('orchestrator'));
+
+  // Helper to create an edge
+  const createEdge = (source: string, target: string, style: 'command' | 'data' | 'feedback') => {
+    const edgeStyles = {
+      command: { 
+        stroke: 'hsl(var(--primary))',
+        strokeWidth: 2,
+        animated: true 
+      },
+      data: { 
+        stroke: 'hsl(var(--primary))', 
+        strokeWidth: 1,
+        animated: true,
+        strokeDasharray: '5,5'
+      },
+      feedback: { 
+        stroke: 'hsl(var(--primary))',
+        strokeWidth: 1,
+        animated: true,
+        strokeDasharray: '3,3'
+      }
+    };
+
+    return {
+      id: `${source}-${target}`,
+      source,
+      target,
+      style: edgeStyles[style]
+    };
+  };
+
+  // Connect chat processor to sequence designer
+  const chatProcessor = nodes.find(n => n.data.type.includes('chat_processor'));
+  const sequenceDesigner = nodes.find(n => n.data.type.includes('sequence_designer'));
   const specialists = nodes.filter(n => 
-    !n.data.type.includes('strategist') && !n.data.type.includes('orchestrator')
+    !n.data.type.includes('chat_processor') && !n.data.type.includes('sequence_designer')
   );
 
-  if (strategist && orchestrator) {
-    // Connect strategist to orchestrator
-    edges.push({
-      id: `${strategist.id}-${orchestrator.id}`,
-      source: strategist.id,
-      target: orchestrator.id,
-      animated: true,
-      style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
-    });
+  if (chatProcessor && sequenceDesigner) {
+    // Command flow: Chat processor -> Sequence designer
+    edges.push(createEdge(chatProcessor.id, sequenceDesigner.id, 'command'));
 
-    // Connect orchestrator to all specialists
+    // Feedback flow: Sequence designer -> Chat processor
+    edges.push(createEdge(sequenceDesigner.id, chatProcessor.id, 'feedback'));
+
+    // Connect sequence designer to specialists
     specialists.forEach(specialist => {
-      edges.push({
-        id: `${orchestrator.id}-${specialist.id}`,
-        source: orchestrator.id,
-        target: specialist.id,
-        animated: true,
-        style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
-      });
+      // Data flow: Sequence designer -> Specialists
+      edges.push(createEdge(sequenceDesigner.id, specialist.id, 'data'));
+
+      // Feedback flow: Specialists -> Sequence designer
+      edges.push(createEdge(specialist.id, sequenceDesigner.id, 'feedback'));
     });
 
-    // Add lateral connections between related specialists
+    // Connect specialists in a ring for peer collaboration
     specialists.forEach((specialist, index) => {
-      const nextSpecialist = specialists[index + 1];
-      if (nextSpecialist) {
-        edges.push({
-          id: `${specialist.id}-${nextSpecialist.id}`,
-          source: specialist.id,
-          target: nextSpecialist.id,
-          animated: true,
-          style: { 
-            stroke: 'hsl(var(--primary))', 
-            strokeWidth: 1,
-            strokeDasharray: '5,5' // Dashed line for peer connections
-          }
-        });
-      }
+      const nextSpecialist = specialists[(index + 1) % specialists.length];
+      edges.push(createEdge(specialist.id, nextSpecialist.id, 'data'));
     });
   }
 
@@ -237,22 +252,19 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
           <div className="space-y-3">
             <div>
               <h3 className="font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Multi-Agent Collaboration
+                Agent Interaction Flow
               </h3>
               <p className="text-sm text-muted-foreground">
-                Strategist → Orchestrator → Specialists
+                Command → Data → Feedback flows
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-sm">Information Flow</h4>
-              <p className="text-sm text-muted-foreground">
-                Strategic direction and execution feedback
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">
-                Solid lines: Direct reporting • Dashed lines: Peer collaboration
-              </p>
+              <h4 className="font-medium text-sm">Edge Types</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>Solid: Command flow</li>
+                <li>Dashed: Data exchange</li>
+                <li>Dotted: Feedback loop</li>
+              </ul>
             </div>
           </div>
         </Panel>
