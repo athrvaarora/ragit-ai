@@ -120,12 +120,26 @@ const nodeTypes = {
 };
 
 export function AgentFlow({ configuration }: AgentFlowProps) {
-  // Initialize nodes with a more spread out circular layout
+  // Initialize nodes with a hierarchical layout
   const initialNodes: Node[] = configuration.agents.map((agent, index) => {
-    const angle = (2 * Math.PI * index) / configuration.agents.length;
-    const radius = 350; // Increased radius for more spacing
-    const x = radius * Math.cos(angle) + radius;
-    const y = radius * Math.sin(angle) + radius;
+    let x = 0;
+    let y = 0;
+
+    // Position based on agent type
+    if (agent.type.includes('executive')) {
+      x = 350; // Center
+      y = 50;  // Top
+    } else if (agent.type.includes('director')) {
+      const directorCount = configuration.agents.filter(a => a.type.includes('director')).length;
+      const directorIndex = configuration.agents.filter(a => a.type.includes('director')).findIndex(a => a.type === agent.type);
+      x = (700 / (directorCount + 1)) * (directorIndex + 1); // Spread directors evenly
+      y = 250; // Middle
+    } else {
+      const specialistCount = configuration.agents.filter(a => !a.type.includes('executive') && !a.type.includes('director')).length;
+      const specialistIndex = configuration.agents.filter(a => !a.type.includes('executive') && !a.type.includes('director')).findIndex(a => a.type === agent.type);
+      x = (700 / (specialistCount + 1)) * (specialistIndex + 1); // Spread specialists evenly
+      y = 450; // Bottom
+    }
 
     return {
       id: agent.type,
@@ -150,35 +164,39 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
     setNodes((nds) => applyNodeChanges(changes, nds));
   };
 
-  // Create edges between agents based on their interaction pattern
+  // Create edges based on hierarchy
   const edges: Edge[] = [];
-  if (configuration.interactionFlow.pattern === "sequential") {
-    // Sequential connections
-    for (let i = 0; i < configuration.agents.length - 1; i++) {
+  const executive = nodes.find(n => n.data.type.includes('executive'));
+  const directors = nodes.filter(n => n.data.type.includes('director'));
+  const specialists = nodes.filter(n => !n.data.type.includes('executive') && !n.data.type.includes('director'));
+
+  if (executive) {
+    // Connect executive to directors
+    directors.forEach(director => {
       edges.push({
-        id: `${configuration.agents[i].type}-${configuration.agents[i + 1].type}`,
-        source: configuration.agents[i].type,
-        target: configuration.agents[i + 1].type,
+        id: `${executive.id}-${director.id}`,
+        source: executive.id,
+        target: director.id,
         animated: true,
         style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
       });
-    }
-  } else if (configuration.interactionFlow.pattern === "orchestrated") {
-    // Orchestrator connections
-    const orchestrator = configuration.agents.find(a => a.type === "orchestrator");
-    if (orchestrator) {
-      configuration.agents.forEach(agent => {
-        if (agent.type !== "orchestrator") {
-          edges.push({
-            id: `orchestrator-${agent.type}`,
-            source: "orchestrator",
-            target: agent.type,
-            animated: true,
-            style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
-          });
-        }
+    });
+
+    // Connect directors to their specialists
+    directors.forEach(director => {
+      const directorArea = director.data.type.split('_')[0]; // e.g., 'sequence' from 'sequence_director'
+      const relatedSpecialists = specialists.filter(s => s.data.type.includes(directorArea));
+
+      relatedSpecialists.forEach(specialist => {
+        edges.push({
+          id: `${director.id}-${specialist.id}`,
+          source: director.id,
+          target: specialist.id,
+          animated: true,
+          style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+        });
       });
-    }
+    });
   }
 
   return (
@@ -199,16 +217,16 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
           <div className="space-y-3">
             <div>
               <h3 className="font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Interaction Pattern
+                Hierarchical Structure
               </h3>
               <p className="text-sm text-muted-foreground">
-                {configuration.interactionFlow.pattern}
+                Executive → Directors → Specialists
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-sm">Task Distribution</h4>
+              <h4 className="font-medium text-sm">Command Flow</h4>
               <p className="text-sm text-muted-foreground">
-                {configuration.interactionFlow.taskDistribution.strategy}
+                Top-down direction, bottom-up feedback
               </p>
             </div>
             <div>

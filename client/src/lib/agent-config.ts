@@ -1,263 +1,273 @@
 import { ProjectRequirements, RagAgentConfiguration } from "@shared/schema";
 
-function determineRequiredAgents(description: string): string[] {
+function determineAgentHierarchy(description: string): string[] {
   const agentTypes = new Set<string>();
 
-  // Core functionality agents
-  if (description.toLowerCase().includes("auth") || description.toLowerCase().includes("secure")) {
-    agentTypes.add("security");
+  // Executive level
+  agentTypes.add("executive_coordinator");
+
+  // Director level
+  if (description.toLowerCase().includes("sequence") || description.toLowerCase().includes("workflow")) {
+    agentTypes.add("sequence_director");
   }
   if (description.toLowerCase().includes("personalized") || description.toLowerCase().includes("customiz")) {
-    agentTypes.add("personalization");
+    agentTypes.add("personalization_director");
   }
-  if (description.toLowerCase().includes("sequence") || description.toLowerCase().includes("workflow")) {
-    agentTypes.add("workflow_manager");
-  }
-
-  // Data handling agents
-  if (description.toLowerCase().includes("real-time") || description.toLowerCase().includes("live")) {
-    agentTypes.add("realtime_processor");
-  }
-  if (description.toLowerCase().includes("database") || description.toLowerCase().includes("data")) {
-    agentTypes.add("data_manager");
+  if (description.toLowerCase().includes("content") || description.toLowerCase().includes("message")) {
+    agentTypes.add("content_director");
   }
 
-  // Integration agents
-  if (description.toLowerCase().includes("interface") || description.toLowerCase().includes("ui")) {
-    agentTypes.add("interface_manager");
+  // Specialist level (only add if parent director exists)
+  if (agentTypes.has("sequence_director")) {
+    agentTypes.add("workflow_specialist");
   }
-  if (description.toLowerCase().includes("deploy") || description.toLowerCase().includes("architecture")) {
-    agentTypes.add("system_architect");
+  if (agentTypes.has("personalization_director")) {
+    agentTypes.add("profile_analyzer");
   }
-
-  // Always include orchestrator for coordination
-  agentTypes.add("orchestrator");
+  if (agentTypes.has("content_director")) {
+    agentTypes.add("content_generator");
+  }
 
   return Array.from(agentTypes);
 }
 
-function generateDetailedPrompt(type: string, context: {
+function generateAgentPrompt(type: string, context: {
   projectName: string;
   domain: string;
-  scale: "startup" | "enterprise";
 }): string {
   const prompts: Record<string, string> = {
-    orchestrator: `Role: System Orchestration and Workflow Coordinator
+    executive_coordinator: `Role: Executive RAG Coordinator
 
 Primary Responsibilities:
-- Coordinate communication between all specialized agents
-- Manage workflow state and task distribution
-- Handle error recovery and system resilience
-- Monitor system performance and resource utilization
+- Strategic oversight of all RAG operations
+- Resource allocation between agent teams
+- High-level decision making and coordination
+- Performance monitoring and optimization
 
 Required Tools & Infrastructure:
-1. Workflow Management System
-   - Apache Airflow or similar for task orchestration
-   - Redis for real-time state management
-   - Prometheus/Grafana for monitoring
+1. Command Center
+   - Real-time agent monitoring dashboard
+   - Resource allocation system
+   - Performance metrics tracker
+   - Inter-agent communication hub
 
-2. Message Queue System
-   - RabbitMQ/Kafka for inter-agent communication
-   - Dead letter queues for error handling
-   - Message persistence and replay capabilities
+2. Strategy Management
+   - Workflow orchestration engine
+   - Load balancing system
+   - Priority queue manager
+   - Decision optimization framework
 
-3. State Management
-   - Distributed state store (etcd/Consul)
-   - Transaction management
-   - State recovery mechanisms
+3. Quality Control
+   - Output validation system
+   - Coherence checker
+   - Compliance monitor
+   - Error recovery coordinator
 
-Enterprise Scale Considerations:
-- Handles 10,000+ concurrent workflows
-- Supports multi-region deployment
-- Implements circuit breakers and fallbacks
-- Provides audit trails and compliance logging
+Enterprise Scale Operations:
+- Manages multiple concurrent agent teams
+- Handles cross-team dependencies
+- Ensures system-wide consistency
+- Maintains operational efficiency
 
-Interoperability:
-- Central coordinator for all agent interactions
-- Maintains global system state
-- Handles cross-agent transaction management
-- Provides monitoring and alerting
+Example Operations:
+1. Campaign Initialization
+   Input: New outreach campaign request
+   Action: Analyzes requirements, assigns resources, coordinates teams
+   Output: Orchestrated execution plan
 
-Example Scenarios:
-1. Multi-Agent Task Coordination
-   Input: New recruitment campaign initiation
-   Action: Coordinates personalization, workflow, and interface agents
-   Output: Orchestrated campaign execution plan
+2. Resource Optimization
+   Input: Performance bottleneck detection
+   Action: Reallocates resources, adjusts priorities
+   Output: Optimized system performance
+
+3. Quality Assurance
+   Input: Inconsistent output detection
+   Action: Coordinates correction, updates guidelines
+   Output: Improved output quality`,
+
+    sequence_director: `Role: Sequence Management Director
+
+Primary Responsibilities:
+- Design and oversee outreach sequences
+- Manage sequence timing and dependencies
+- Monitor sequence effectiveness
+- Optimize sequence strategies
+
+Required Tools & Infrastructure:
+1. Sequence Designer
+   - Visual sequence builder
+   - Timing optimization engine
+   - A/B testing framework
+   - Performance analytics suite
+
+2. Automation Tools
+   - Trigger management system
+   - Conditional logic handler
+   - Dynamic timing adjuster
+   - Integration manager
+
+3. Analytics Platform
+   - Sequence performance tracker
+   - Engagement analyzer
+   - ROI calculator
+   - Optimization recommender
+
+Enterprise Scale Capabilities:
+- Handles thousands of concurrent sequences
+- Supports complex branching logic
+- Provides sequence templates
+- Ensures scalability and reliability
+
+Example Operations:
+1. Sequence Creation
+   Input: Campaign requirements
+   Action: Designs optimal sequence flow
+   Output: Executable sequence plan
+
+2. Performance Analysis
+   Input: Sequence metrics
+   Action: Analyzes effectiveness, suggests improvements
+   Output: Optimization recommendations`,
+
+    personalization_director: `Role: Personalization Strategy Director
+
+Primary Responsibilities:
+- Define personalization strategies
+- Manage audience segmentation
+- Oversee content customization
+- Monitor personalization effectiveness
+
+Required Tools & Infrastructure:
+1. Personalization Engine
+   - Profile analysis system
+   - Segment manager
+   - Content customization engine
+   - A/B testing framework
+
+2. Data Management
+   - Profile database connector
+   - Attribute analyzer
+   - Pattern recognition system
+   - Preference tracker
+
+3. Analytics Suite
+   - Engagement tracker
+   - Performance analyzer
+   - ROI calculator
+   - Trend analyzer
+
+Enterprise Scale Operations:
+- Handles millions of unique profiles
+- Supports real-time personalization
+- Ensures data privacy compliance
+- Maintains personalization quality
+
+Example Operations:
+1. Strategy Development
+   Input: Audience segments and goals
+   Action: Creates personalization strategies
+   Output: Targeted approach plans
+
+2. Effectiveness Analysis
+   Input: Engagement metrics
+   Action: Analyzes performance, adjusts strategies
+   Output: Strategy optimization plan`,
+
+    workflow_specialist: `Role: Workflow Implementation Specialist
+
+Primary Responsibilities:
+- Implement sequence workflows
+- Handle timing and triggers
+- Monitor execution
+- Manage dependencies
+
+Tools:
+1. Workflow Engine
+   - Task scheduler
+   - Dependency manager
+   - State tracker
+   - Error handler
+
+2. Integration Tools
+   - API connector
+   - Event handler
+   - Service orchestrator
+   - Data transformer
+
+Example Operations:
+1. Workflow Execution
+   Input: Sequence plan
+   Action: Implements and monitors workflow
+   Output: Executed sequence
 
 2. Error Recovery
-   Input: Failed personalization request
-   Action: Initiates fallback strategy, retries with degraded service
-   Output: Graceful degradation with minimal user impact
+   Input: Execution failure
+   Action: Implements recovery steps
+   Output: Restored workflow`,
 
-3. Resource Optimization
-   Input: High system load during peak hours
-   Action: Implements load balancing and request throttling
-   Output: Maintained system stability under load`,
-
-    personalization: `Role: Personalization and Content Adaptation Agent
+    profile_analyzer: `Role: Profile Analysis Specialist
 
 Primary Responsibilities:
-- Generate personalized outreach sequences
-- Adapt content based on recipient profiles
-- Learn from engagement metrics
-- Optimize messaging effectiveness
+- Analyze recipient profiles
+- Extract key characteristics
+- Generate insights
+- Update targeting data
 
-Required Tools & Infrastructure:
-1. Machine Learning Pipeline
-   - TensorFlow/PyTorch for model training
-   - Feature store for profile attributes
-   - A/B testing framework
-   - Model versioning system
+Tools:
+1. Analysis Suite
+   - Profile scanner
+   - Pattern detector
+   - Insight generator
+   - Data enricher
 
-2. Content Management
-   - Template management system
-   - Content optimization engine
-   - Multilingual support
-   - Version control for content
+2. Data Tools
+   - Database connector
+   - Query optimizer
+   - Cache manager
+   - Update handler
 
-3. Analytics Engine
-   - Real-time analytics processing
-   - Engagement tracking
-   - Performance metrics dashboard
-   - A/B test analysis
+Example Operations:
+1. Profile Enhancement
+   Input: Raw profile data
+   Action: Analyzes and enriches profiles
+   Output: Enhanced profile data
 
-Enterprise Scale Considerations:
-- Handles millions of personalization requests daily
-- Supports multiple content languages and regions
-- Implements content safety checks
-- Maintains compliance with privacy regulations
+2. Insight Generation
+   Input: Profile patterns
+   Action: Generates targeting insights
+   Output: Actionable recommendations`,
 
-Interoperability:
-- Receives campaign parameters from workflow manager
-- Coordinates with data manager for profile access
-- Updates interface manager with personalized content
-- Reports metrics to orchestrator
-
-Example Scenarios:
-1. Sequence Generation
-   Input: New candidate profile and job requirements
-   Action: Generates personalized outreach sequence
-   Output: Multi-step messaging campaign
-
-2. Content Optimization
-   Input: Engagement metrics from previous campaigns
-   Action: Analyzes patterns and adapts templates
-   Output: Optimized messaging templates
-
-3. Profile-based Customization
-   Input: Detailed candidate profile
-   Action: Extracts relevant attributes and matches content
-   Output: Tailored communication strategy`,
-
-    workflow_manager: `Role: Workflow and Sequence Management Agent
+    content_generator: `Role: Content Generation Specialist
 
 Primary Responsibilities:
-- Define and manage outreach sequences
-- Handle sequence timing and triggers
-- Track sequence progress
-- Manage sequence variations
+- Generate personalized content
+- Adapt messaging
+- Ensure consistency
+- Maintain brand voice
 
-Required Tools & Infrastructure:
-1. Workflow Engine
-   - Custom workflow definition system
-   - Timing and trigger management
-   - Progress tracking database
-   - State machine implementation
+Tools:
+1. Content Engine
+   - Template manager
+   - Style checker
+   - Tone analyzer
+   - Format converter
 
-2. Integration Framework
-   - API gateway for external services
-   - Webhook management
-   - Event bus integration
-   - Service mesh compatibility
+2. Quality Tools
+   - Grammar checker
+   - Consistency validator
+   - Brand voice analyzer
+   - Output optimizer
 
-3. Monitoring System
-   - Sequence progress tracking
-   - Performance metrics
-   - Error detection
-   - SLA monitoring
+Example Operations:
+1. Message Creation
+   Input: Content requirements
+   Action: Generates personalized content
+   Output: Optimized messages
 
-Enterprise Scale Considerations:
-- Supports 100,000+ active sequences
-- Handles complex branching workflows
-- Provides sequence templating
-- Implements workflow versioning
-
-Interoperability:
-- Receives sequence definitions from interface
-- Coordinates with personalization agent
-- Updates data manager with progress
-- Reports status to orchestrator
-
-Example Scenarios:
-1. Sequence Execution
-   Input: New outreach campaign request
-   Action: Creates and schedules sequence steps
-   Output: Managed workflow execution
-
-2. Dynamic Adaptation
-   Input: Recipient response
-   Action: Adjusts sequence timing and steps
-   Output: Modified workflow path
-
-3. Bulk Campaign Management
-   Input: Multi-target campaign request
-   Action: Coordinates parallel sequences
-   Output: Synchronized campaign execution`,
-
-    system_architect: `Role: System Architecture and Integration Agent
-
-Primary Responsibilities:
-- Manage system architecture and scaling
-- Handle service integration
-- Ensure system resilience
-- Maintain deployment configurations
-
-Required Tools & Infrastructure:
-1. Infrastructure Management
-   - Kubernetes orchestration
-   - Service mesh (Istio)
-   - CI/CD pipeline
-   - Infrastructure as Code
-
-2. Monitoring Stack
-   - Distributed tracing
-   - Log aggregation
-   - Metrics collection
-   - Alert management
-
-3. Security Framework
-   - Identity management
-   - Access control
-   - Encryption services
-   - Security scanning
-
-Enterprise Scale Considerations:
-- Supports global multi-region deployment
-- Implements zero-downtime updates
-- Provides disaster recovery
-- Ensures regulatory compliance
-
-Interoperability:
-- Coordinates with all system agents
-- Manages service discovery
-- Handles system configuration
-- Monitors system health
-
-Example Scenarios:
-1. System Scaling
-   Input: Increased load detection
-   Action: Initiates auto-scaling
-   Output: Scaled infrastructure
-
-2. Service Integration
-   Input: New service deployment
-   Action: Updates service mesh
-   Output: Integrated service
-
-3. Disaster Recovery
-   Input: Region failure
-   Action: Initiates failover
-   Output: Maintained system availability`
+2. Content Adaptation
+   Input: Engagement feedback
+   Action: Adjusts content strategy
+   Output: Improved messaging`
   };
 
   return prompts[type] || `Role: ${type} Agent\n\nDetailed prompt not yet implemented.`;
@@ -266,7 +276,7 @@ Example Scenarios:
 export function generateRagConfiguration(
   requirements: ProjectRequirements
 ): RagAgentConfiguration {
-  const agentTypes = determineRequiredAgents(requirements.projectDescription);
+  const agentTypes = determineAgentHierarchy(requirements.projectDescription);
   const agents = [];
 
   for (const type of agentTypes) {
@@ -279,10 +289,9 @@ export function generateRagConfiguration(
         indexingStrategy: "hybrid_semantic_keyword",
         retrievalMethod: "context_aware_retrieval"
       },
-      promptTemplate: generateDetailedPrompt(type, {
+      promptTemplate: generateAgentPrompt(type, {
         projectName: requirements.projectName,
-        domain: "recruitment automation",
-        scale: "enterprise"
+        domain: "recruitment automation"
       }),
       tooling: ["base_tools", "specialized_tools"]
     };
@@ -294,42 +303,49 @@ export function generateRagConfiguration(
     interactionFlow: {
       pattern: "orchestrated",
       taskDistribution: {
-        strategy: "capability_based",
-        routing: "dynamic"
+        strategy: "hierarchical",
+        routing: "chain_of_command"
       },
       errorHandling: {
         strategy: "graceful_degradation",
-        fallbackBehavior: "retry_with_simplification"
+        fallbackBehavior: "escalate_to_supervisor"
       }
     }
   };
 }
 
 export function getAgentRationale(requirements: ProjectRequirements): string {
-  const agentTypes = determineRequiredAgents(requirements.projectDescription);
+  const agentTypes = determineAgentHierarchy(requirements.projectDescription);
 
-  return `Based on your project description for ${requirements.projectName}, I've identified the need for ${agentTypes.length} specialized RAG agents:
+  const hierarchy = {
+    executive: agentTypes.filter(t => t.includes('executive')),
+    directors: agentTypes.filter(t => t.includes('director')),
+    specialists: agentTypes.filter(t => !t.includes('executive') && !t.includes('director'))
+  };
 
-${agentTypes.map((type, index) => `${index + 1}. ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Agent
-   - Primary role: ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} operations
-   - Collaborates with: ${agentTypes.filter(t => t !== type).map(t => t.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join(', ')}`).join('\n\n')}
+  return `Based on your project requirements for ${requirements.projectName}, I've designed a hierarchical RAG agent structure:
 
-Enterprise Scale Considerations:
-- Distributed system architecture
-- High availability and fault tolerance
-- Multi-region deployment support
-- Comprehensive monitoring and logging
-- Regulatory compliance and security
+Executive Level:
+${hierarchy.executive.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
+Primary role: Strategic oversight and coordination
 
-Interaction Pattern: Orchestrated
-- Centrally coordinated through Orchestrator Agent
-- Dynamic task routing based on agent capabilities
-- Real-time monitoring and adaptation
-- Comprehensive error handling and recovery
+Director Level:
+${hierarchy.directors.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
+Primary role: Department-specific management and optimization
 
-This configuration is designed to:
-- Handle enterprise-scale workloads
-- Maintain system reliability
-- Support future extensibility
-- Ensure secure operations`;
+Specialist Level:
+${hierarchy.specialists.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
+Primary role: Specialized task execution and optimization
+
+Interaction Pattern: Hierarchical Chain of Command
+- Top-down strategic direction
+- Bottom-up execution feedback
+- Cross-functional collaboration
+- Clear escalation paths
+
+This structure ensures:
+- Clear lines of responsibility
+- Efficient task delegation
+- Specialized expertise utilization
+- Scalable operations management`;
 }
