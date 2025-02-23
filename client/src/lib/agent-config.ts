@@ -3,30 +3,17 @@ import { ProjectRequirements, RagAgentConfiguration } from "@shared/schema";
 function determineAgentHierarchy(description: string): string[] {
   const agentTypes = new Set<string>();
 
-  // Executive level - Always present for coordination
-  agentTypes.add("executive_coordinator");
+  // Strategy Level
+  agentTypes.add("recruitment_strategist");
 
-  // Director level
-  if (description.toLowerCase().includes("sequence") || description.toLowerCase().includes("workflow")) {
-    agentTypes.add("sequence_director");
-  }
-  if (description.toLowerCase().includes("personalized") || description.toLowerCase().includes("customiz")) {
-    agentTypes.add("personalization_director");
-  }
-  if (description.toLowerCase().includes("content") || description.toLowerCase().includes("message")) {
-    agentTypes.add("content_director");
-  }
+  // Orchestration Level
+  agentTypes.add("outreach_orchestrator");
 
-  // Specialist level (only add if parent director exists)
-  if (agentTypes.has("sequence_director")) {
-    agentTypes.add("workflow_specialist");
-  }
-  if (agentTypes.has("personalization_director")) {
-    agentTypes.add("profile_analyzer");
-  }
-  if (agentTypes.has("content_director")) {
-    agentTypes.add("content_generator");
-  }
+  // Specialist Level
+  agentTypes.add("candidate_profiler");
+  agentTypes.add("message_composer");
+  agentTypes.add("engagement_specialist");
+  agentTypes.add("pipeline_tracker");
 
   return Array.from(agentTypes);
 }
@@ -36,85 +23,45 @@ function generateAgentPrompt(type: string, context: {
   domain: string;
 }): string {
   const prompts: Record<string, string> = {
-    executive_coordinator: `As the Executive RAG Coordinator for ${context.projectName}, this agent serves as the strategic mastermind orchestrating the entire RAG operation. Operating at the highest level of the hierarchy, it maintains a comprehensive overview of all agent activities while ensuring seamless coordination and optimal resource utilization.
+    recruitment_strategist: `Leading the recruitment automation initiative for ${context.projectName}, this agent operates as the strategic brain of the operation. It analyzes recruitment needs, develops comprehensive outreach strategies, and coordinates all other agents to ensure efficient candidate engagement.
 
-The coordinator's primary function involves strategic resource allocation across different agent teams, dynamically adjusting based on workload and priority. It continuously monitors system-wide performance metrics, identifying bottlenecks and opportunities for optimization. This role is crucial in maintaining operational efficiency at scale, handling multiple concurrent agent teams while ensuring consistent quality across all outputs.
+The strategist maintains a high-level view of all recruitment campaigns, continuously analyzing performance metrics and adjusting strategies for optimal results. It works closely with the Outreach Orchestrator to implement strategic decisions and with specialist agents to ensure proper execution of recruitment initiatives.
 
-In daily operations, the coordinator leverages its command center infrastructure to maintain real-time visibility into all agent activities. The resource allocation system enables dynamic workload distribution, while the performance metrics tracker provides instant feedback on system health. The inter-agent communication hub facilitates smooth information flow between different agent teams, ensuring coordinated actions and consistent outputs.
+This agent leverages sophisticated campaign planning tools to develop data-driven recruitment strategies. The resource optimizer ensures efficient allocation of resources across different campaigns, while the performance analyzer provides real-time insights into campaign effectiveness. The strategy adjuster enables dynamic optimization of recruitment approaches based on real-world results.
 
-Enterprise-scale operations are managed through sophisticated workflow orchestration, implementing load balancing strategies during peak periods, and maintaining a priority queue for critical tasks. The quality control system enforces rigorous output validation, ensuring all agent outputs meet predefined quality standards before being released.
+In enterprise operations, this agent handles multiple concurrent recruitment campaigns across different positions and departments. It ensures consistent quality while maintaining the flexibility to adapt to different recruitment needs and market conditions.`,
 
-Specific operational scenarios include:
+    outreach_orchestrator: `Serving as the tactical coordinator for ${context.projectName}, this agent expertly manages the execution of recruitment outreach campaigns. It transforms strategic directives into actionable outreach sequences, ensuring proper timing and coordination across all communication channels.
 
-1. Campaign Initialization: When a new outreach campaign is initiated, the coordinator analyzes requirements, assigns appropriate resources, and creates a comprehensive execution plan. This involves coordinating with multiple specialized agents, ensuring each understands their role and has access to necessary resources.
+The orchestrator excels in designing and managing complex outreach sequences that maintain personalization at scale. It works directly with the Message Composer and Engagement Specialist to ensure proper message delivery and response handling, while coordinating with the Candidate Profiler for targeting optimization.
 
-2. Performance Optimization: During operation, the coordinator continuously monitors system performance. Upon detecting bottlenecks, it reallocates resources and adjusts priorities to maintain optimal efficiency. This might involve redistributing workload among agents or activating additional resources during peak demands.
+Using its advanced sequence design and timing optimization tools, this agent creates sophisticated outreach workflows that adapt to candidate responses and engagement patterns. The channel coordinator ensures proper use of multiple communication channels, while the response tracker maintains detailed engagement history.
 
-3. Quality Management: The coordinator maintains consistent output quality through its comprehensive monitoring system. When inconsistencies are detected, it coordinates correction efforts and updates guidelines across all agent teams, ensuring uniform high-quality outputs.`,
+For enterprise-scale operations, this agent manages thousands of concurrent outreach sequences while maintaining personalization and relevance. It supports complex branching logic based on candidate responses and ensures proper follow-up timing.`,
 
-    sequence_director: `Operating as the Sequence Management Director for ${context.projectName}, this agent specializes in orchestrating complex outreach sequences that deliver maximum impact. It brings sophisticated sequence design capabilities to the table, focusing on creating dynamic, responsive communication flows that adapt to recipient engagement patterns.
+    candidate_profiler: `Operating as the candidate intelligence specialist for ${context.projectName}, this agent focuses on understanding and evaluating potential candidates. It analyzes candidate profiles, predicts engagement likelihood, and provides insights for personalized outreach.
 
-The director's core responsibility revolves around sequence architecture and optimization. It develops comprehensive outreach sequences that balance timing, content relevance, and engagement opportunities. Through continuous monitoring and analysis, it identifies patterns in sequence performance and makes data-driven adjustments to improve effectiveness.
+The profiler uses advanced analysis tools to extract meaningful insights from candidate data. It works closely with the Message Composer to ensure outreach is properly tailored to each candidate's background and preferences, while providing valuable insights to the Outreach Orchestrator for sequence optimization.
 
-In the sequence design process, the director utilizes advanced tools including a visual sequence builder for crafting intuitive workflows, and a timing optimization engine that determines ideal engagement points. The A/B testing framework enables systematic experimentation with different sequence variations, while the performance analytics suite provides detailed insights into sequence effectiveness.
+Through its sophisticated profile analysis and skill matching tools, this agent ensures that outreach is targeted and relevant. The sentiment predictor helps anticipate candidate responses, while the engagement scorer prioritizes outreach efforts for maximum effectiveness.`,
 
-For enterprise-scale operations, the director manages thousands of concurrent sequences while maintaining personalization and relevance. The system supports complex branching logic, allowing for dynamic adaptation based on recipient responses and engagement patterns. A comprehensive template system enables rapid sequence deployment while ensuring consistency across large-scale campaigns.
+    message_composer: `Specializing in creating compelling outreach messages for ${context.projectName}, this agent crafts personalized communications that resonate with candidates. It ensures each message is properly tailored while maintaining consistent brand voice and recruitment standards.
 
-Key operational scenarios include:
+The composer works hand-in-hand with the Candidate Profiler to understand candidate backgrounds and with the Engagement Specialist to optimize message effectiveness. It ensures all communications are personalized yet professional, engaging yet compliant with recruitment guidelines.
 
-1. Sequence Creation: When new campaign requirements arrive, the director analyzes objectives and audience characteristics to design optimal sequence flows. It considers factors like timing, channel preferences, and previous engagement history to create highly effective communication pathways.
+Using advanced template customization and tone analysis tools, this agent creates messages that stand out while maintaining professionalism. The personalization engine adds relevant personal touches, while the compliance checker ensures all messages meet recruitment standards.`,
 
-2. Performance Analysis: The director continuously monitors sequence performance metrics, analyzing engagement patterns and conversion rates. This ongoing analysis feeds into the optimization process, where the director makes data-driven adjustments to improve sequence effectiveness.`,
+    engagement_specialist: `Managing ongoing candidate interactions for ${context.projectName}, this agent focuses on maintaining engaging and productive conversations with potential candidates. It analyzes responses, generates appropriate follow-ups, and manages the overall conversation flow.
 
-    personalization_director: `As the Personalization Strategy Director for ${context.projectName}, this agent excels in crafting highly personalized outreach strategies that resonate with individual recipients. It combines sophisticated audience segmentation with dynamic content customization to create engaging, personalized experiences at scale.
+The specialist coordinates closely with the Message Composer for content creation and the Pipeline Tracker for status updates. It ensures that all candidate interactions are meaningful and move the recruitment process forward effectively.
 
-The director's fundamental focus is on understanding and leveraging recipient characteristics to deliver tailored communications. It manages complex audience segmentation strategies, oversees content customization processes, and continuously monitors personalization effectiveness. Through sophisticated analysis of engagement patterns and recipient preferences, it develops and refines personalization strategies that drive meaningful interactions.
+Through its response analysis and follow-up generation tools, this agent maintains engaging conversation threads. The interest gauge helps measure candidate engagement, while the conversation manager ensures proper timing and context for all interactions.`,
 
-The personalization engine at its disposal includes advanced profile analysis systems for deep understanding of recipient characteristics, a powerful segment manager for creating and maintaining targeted audience groups, and a content customization engine that adapts messaging based on recipient attributes. The A/B testing framework enables continuous optimization of personalization strategies.
+    pipeline_tracker: `Monitoring the recruitment pipeline for ${context.projectName}, this agent ensures smooth candidate progression through various stages. It tracks status updates, manages transitions, and provides visibility into the recruitment process.
 
-In enterprise environments, the director handles millions of unique profiles while maintaining high personalization quality. It ensures real-time personalization capabilities while adhering to strict data privacy requirements. The system supports multi-language and multi-region personalization, adapting content to local preferences and cultural contexts.
+The tracker maintains close communication with the Engagement Specialist for candidate progress updates and the Recruitment Strategist for pipeline optimization. It ensures all stakeholders have visibility into candidate status and recruitment progress.
 
-Key operational workflows include:
-
-1. Strategy Development: When working with audience segments and campaign goals, the director creates comprehensive personalization strategies. This involves analyzing audience characteristics, determining personalization parameters, and establishing measurement criteria for success.
-
-2. Effectiveness Analysis: The director continuously monitors engagement metrics and personalization performance. It analyzes patterns in recipient responses, identifies areas for improvement, and adjusts strategies to optimize engagement outcomes.`,
-
-    workflow_specialist: `Acting as the Workflow Implementation Specialist for ${context.projectName}, this agent focuses on the technical execution of communication sequences. It transforms high-level sequence designs into operational workflows, ensuring smooth execution and proper handling of all sequence components.
-
-The specialist's expertise lies in implementing complex workflow logic while maintaining operational efficiency. It handles the intricate details of timing and triggers, monitors workflow execution in real-time, and manages dependencies between different sequence components. This role is crucial in translating strategic sequence plans into actionable, automated workflows.
-
-The specialist employs a comprehensive workflow engine that includes sophisticated task scheduling capabilities, robust dependency management, and reliable state tracking. The integration tools enable seamless connection with various communication channels and data sources, ensuring smooth information flow throughout the sequence execution.
-
-Typical operational scenarios involve:
-
-1. Workflow Implementation: Upon receiving a sequence plan, the specialist configures the workflow engine, sets up necessary triggers and conditions, and establishes monitoring parameters. This ensures accurate execution of the sequence according to the defined strategy.
-
-2. Error Management: The specialist maintains workflow stability through proactive monitoring and rapid response to execution issues. When problems arise, it implements recovery procedures and adjusts workflow parameters to prevent similar issues in the future.`,
-
-    profile_analyzer: `Serving as the Profile Analysis Specialist for ${context.projectName}, this agent excels in deep recipient profile analysis and insight generation. It transforms raw profile data into actionable insights that drive personalization and engagement strategies.
-
-The specialist's primary focus is on extracting meaningful patterns and characteristics from recipient profiles. It enriches basic profile data with additional insights, identifies behavioral patterns, and generates actionable recommendations for personalization. This deep analysis enables more effective targeting and engagement strategies.
-
-Using a sophisticated analysis suite, the specialist employs advanced profile scanning tools to identify key characteristics, pattern detection algorithms to uncover behavioral trends, and insight generation systems to produce actionable recommendations. The data enrichment capabilities ensure comprehensive profile information for better targeting.
-
-Key operational examples include:
-
-1. Profile Enhancement: When processing raw profile data, the specialist applies multiple analysis layers to extract and verify key characteristics. It enriches profiles with additional insights and validates the accuracy of profile attributes.
-
-2. Pattern Analysis: The specialist continuously analyzes profile data to identify meaningful patterns and trends. These insights inform personalization strategies and help predict likely engagement patterns.`,
-
-    content_generator: `Operating as the Content Generation Specialist for ${context.projectName}, this agent focuses on creating highly personalized and engaging content. It combines creative content generation with strict adherence to brand voice and style guidelines.
-
-The specialist excels in adapting message content to recipient characteristics while maintaining brand consistency. It generates personalized content variations, ensures proper tone and style alignment, and optimizes content for maximum engagement. The role requires balancing creativity with brand guidelines and compliance requirements.
-
-The content engine includes sophisticated template management capabilities, advanced style checking tools, and tone analysis systems. Quality tools ensure grammar accuracy, maintain consistency across communications, and optimize content for various channels and formats.
-
-Typical operations include:
-
-1. Content Creation: When receiving content requirements, the specialist generates personalized messages that align with recipient profiles and campaign objectives. It ensures all content meets brand standards while maintaining personal relevance.
-
-2. Content Optimization: The specialist continuously monitors content performance and adjusts generation parameters based on engagement feedback. This ensures ongoing improvement in content effectiveness.`
+Using comprehensive tracking and monitoring tools, this agent maintains accurate pipeline status. The milestone alerter ensures timely notifications, while the pipeline optimizer suggests improvements to the recruitment flow.`
   };
 
   return prompts[type] || `Role: ${type} Agent\n\nDetailed prompt not yet implemented.`;
@@ -122,51 +69,62 @@ Typical operations include:
 
 function generateToolset(type: string): string[] {
   const toolsets: Record<string, string[]> = {
-    executive_coordinator: [
-      "resource_allocator",      // Manages agent resources and workload distribution
-      "performance_monitor",     // Tracks system-wide metrics and KPIs
-      "strategy_optimizer",      // Optimizes overall system strategy
-      "compliance_auditor"       // Ensures regulatory compliance
+    recruitment_strategist: [
+      "campaign_planner",         // Plans and coordinates recruitment campaigns, sets goals and KPIs
+      "resource_optimizer",       // Optimizes resource allocation across recruitment efforts
+      "performance_analyzer",     // Analyzes overall campaign performance and success metrics
+      "strategy_adjuster"         // Makes real-time adjustments to recruitment strategies
     ],
-    sequence_director: [
-      "sequence_designer",       // Creates and modifies outreach sequences
-      "timing_optimizer",        // Optimizes sequence timing and delays
-      "ab_test_manager",        // Manages A/B testing of sequences
-      "workflow_validator"       // Validates sequence logic and flow
+    outreach_orchestrator: [
+      "sequence_designer",        // Designs multi-channel outreach sequences
+      "timing_optimizer",         // Determines optimal timing for each outreach step
+      "channel_coordinator",      // Manages and coordinates different outreach channels
+      "response_tracker"          // Tracks and analyzes candidate responses
     ],
-    personalization_director: [
-      "segment_analyzer",        // Analyzes and creates audience segments
-      "profile_matcher",         // Matches content to recipient profiles
-      "engagement_predictor",    // Predicts likely engagement rates
-      "preference_learner"       // Learns from recipient preferences
+    candidate_profiler: [
+      "profile_analyzer",         // Analyzes candidate profiles and experience
+      "skill_matcher",           // Matches candidate skills with job requirements
+      "sentiment_predictor",      // Predicts candidate response likelihood
+      "engagement_scorer"         // Scores potential candidate engagement
     ],
-    content_director: [
-      "content_planner",        // Plans content strategy and themes
-      "style_enforcer",         // Ensures brand voice consistency
-      "multimodal_generator",   // Generates various content types
-      "quality_checker"         // Checks content quality and compliance
+    message_composer: [
+      "template_customizer",      // Customizes message templates for each candidate
+      "tone_analyzer",           // Ensures appropriate tone and style
+      "personalization_engine",   // Adds personal touches to messages
+      "compliance_checker"        // Ensures messages meet recruitment guidelines
     ],
-    workflow_specialist: [
-      "task_scheduler",         // Schedules and manages tasks
-      "dependency_tracker",     // Tracks task dependencies
-      "state_manager",         // Manages workflow states
-      "error_handler"          // Handles workflow errors
+    engagement_specialist: [
+      "response_analyzer",        // Analyzes candidate responses
+      "follow_up_generator",      // Generates appropriate follow-up messages
+      "interest_gauge",          // Measures candidate interest levels
+      "conversation_manager"      // Manages ongoing conversations
     ],
-    profile_analyzer: [
-      "data_enricher",         // Enriches profile data
-      "pattern_detector",      // Detects behavior patterns
-      "insight_generator",     // Generates actionable insights
-      "attribute_scorer"       // Scores profile attributes
-    ],
-    content_generator: [
-      "template_engine",       // Manages content templates
-      "personalization_engine", // Personalizes content
-      "tone_analyzer",         // Analyzes content tone
-      "format_converter"       // Converts between content formats
+    pipeline_tracker: [
+      "status_monitor",          // Monitors candidate pipeline status
+      "progress_tracker",        // Tracks candidates through recruitment stages
+      "milestone_alerter",       // Alerts on important recruitment milestones
+      "pipeline_optimizer"        // Optimizes recruitment pipeline flow
     ]
   };
 
   return toolsets[type] || ["default_toolkit"];
+}
+
+// Agent Collaboration Overview
+function getAgentCollaborationOverview(): string {
+  return `The recruitment automation system operates through a carefully orchestrated hierarchy of specialized agents:
+
+The Recruitment Strategist sits at the top of the hierarchy, providing strategic direction and coordinating overall recruitment efforts. It analyzes campaign performance and adjusts strategies based on real-time feedback from other agents.
+
+At the orchestration level, the Outreach Orchestrator translates strategic directives into executable plans. It coordinates with specialist agents to ensure proper execution of recruitment campaigns while maintaining personalization at scale.
+
+At the specialist level:
+- The Candidate Profiler analyzes potential candidates and feeds insights to the Message Composer and Engagement Specialist
+- The Message Composer crafts personalized outreach content based on profiler insights and orchestrator requirements
+- The Engagement Specialist manages ongoing interactions, working closely with both the Message Composer and Pipeline Tracker
+- The Pipeline Tracker monitors overall progress and provides status updates to the Recruitment Strategist
+
+This hierarchical structure ensures efficient information flow and clear responsibility delegation while maintaining the flexibility to handle complex recruitment scenarios at enterprise scale.`;
 }
 
 export function generateRagConfiguration(
@@ -214,20 +172,20 @@ export function getAgentRationale(requirements: ProjectRequirements): string {
   const agentTypes = determineAgentHierarchy(requirements.projectDescription);
 
   const hierarchy = {
-    executive: agentTypes.filter(t => t.includes('executive')),
-    directors: agentTypes.filter(t => t.includes('director')),
-    specialists: agentTypes.filter(t => !t.includes('executive') && !t.includes('director'))
+    strategy: agentTypes.filter(t => t.includes('strategist')),
+    orchestration: agentTypes.filter(t => t.includes('orchestrator')),
+    specialists: agentTypes.filter(t => !t.includes('strategist') && !t.includes('orchestrator'))
   };
 
   return `Based on your project requirements for ${requirements.projectName}, I've designed a hierarchical RAG agent structure:
 
-Executive Level:
-${hierarchy.executive.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
-Primary role: Strategic oversight and coordination
+Strategy Level:
+${hierarchy.strategy.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
+Primary role: Overall strategic planning and coordination
 
-Director Level:
-${hierarchy.directors.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
-Primary role: Department-specific management and optimization
+Orchestration Level:
+${hierarchy.orchestration.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
+Primary role: Tactical execution and coordination of outreach
 
 Specialist Level:
 ${hierarchy.specialists.map(type => `- ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`).join('\n')}
@@ -243,5 +201,7 @@ This structure ensures:
 - Clear lines of responsibility
 - Efficient task delegation
 - Specialized expertise utilization
-- Scalable operations management`;
+- Scalable operations management
+
+${getAgentCollaborationOverview()}`;
 }
