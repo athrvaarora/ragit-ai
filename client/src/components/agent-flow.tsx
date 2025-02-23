@@ -21,6 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { motion } from "framer-motion";
 
 interface AgentFlowProps {
   configuration: RagAgentConfiguration;
@@ -32,42 +33,78 @@ function AgentNode({ data }: NodeProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="bg-card border rounded-lg p-4 min-w-[250px] max-w-[300px]">
-            <Handle type="target" position={Position.Left} className="!bg-primary" />
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-card border rounded-lg p-4 min-w-[250px] max-w-[300px] hover:shadow-lg transition-shadow backdrop-blur-sm bg-opacity-95"
+          >
+            <Handle 
+              type="target" 
+              position={Position.Left} 
+              className="!bg-primary !w-3 !h-3 !-translate-x-1.5" 
+            />
             <div className="mb-3">
-              <h3 className="font-medium text-lg mb-1">{data.role}</h3>
-              <Badge variant="secondary">
+              <h3 className="font-medium text-lg mb-1 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                {data.role}
+              </h3>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-none">
                 {data.type}
               </Badge>
             </div>
             <div className="flex flex-wrap gap-2 mb-2">
               {data.tools.map((tool: string, i: number) => (
-                <Badge key={i} variant="outline" className="text-xs">
-                  {tool}
-                </Badge>
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <Badge variant="outline" className="text-xs border-primary/20 bg-primary/5">
+                    {tool}
+                  </Badge>
+                </motion.div>
               ))}
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {data.description}
             </p>
-            <Handle type="source" position={Position.Right} className="!bg-primary" />
-          </div>
+            <Handle 
+              type="source" 
+              position={Position.Right} 
+              className="!bg-primary !w-3 !h-3 !translate-x-1.5" 
+            />
+          </motion.div>
         </TooltipTrigger>
         <TooltipContent side="right" className="max-w-sm">
           <div className="space-y-2">
             <div>
               <p className="font-medium mb-1">Responsibilities:</p>
-              <ul className="list-disc pl-4 text-sm">
+              <ul className="list-disc pl-4 text-sm space-y-1">
                 {data.responsibilities.map((resp: string, i: number) => (
-                  <li key={i}>{resp}</li>
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    {resp}
+                  </motion.li>
                 ))}
               </ul>
             </div>
             <div>
               <p className="font-medium mb-1">Knowledge Base:</p>
-              <ul className="list-disc pl-4 text-sm">
+              <ul className="list-disc pl-4 text-sm space-y-1">
                 {data.knowledgeBase.sources.map((source: string, i: number) => (
-                  <li key={i}>{source}</li>
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    {source}
+                  </motion.li>
                 ))}
               </ul>
             </div>
@@ -145,31 +182,39 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
   }
 
   return (
-    <div className="h-[700px] border rounded-lg">
+    <div className="h-[700px] border rounded-lg bg-gradient-to-br from-background to-primary/5">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         fitView
-        className="bg-background"
+        className="bg-background/50"
         minZoom={0.5}
         maxZoom={1.5}
       >
         <Background />
         <Controls />
-        <Panel position="top-left" className="bg-background border rounded-lg p-4">
+        <Panel position="top-left" className="bg-card border rounded-lg p-4 backdrop-blur-sm bg-opacity-95">
           <div className="space-y-3">
             <div>
-              <h3 className="font-medium">Interaction Pattern</h3>
-              <p className="text-sm text-muted-foreground">{configuration.interactionFlow.pattern}</p>
+              <h3 className="font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Interaction Pattern
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {configuration.interactionFlow.pattern}
+              </p>
             </div>
             <div>
               <h4 className="font-medium text-sm">Task Distribution</h4>
-              <p className="text-sm text-muted-foreground">{configuration.interactionFlow.taskDistribution.strategy}</p>
+              <p className="text-sm text-muted-foreground">
+                {configuration.interactionFlow.taskDistribution.strategy}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Drag agents to rearrange • Scroll to zoom</p>
+              <p className="text-xs text-muted-foreground">
+                Drag agents to rearrange • Scroll to zoom
+              </p>
             </div>
           </div>
         </Panel>
