@@ -35,7 +35,7 @@ export default function ProjectInput() {
     <div className="container mx-auto py-8">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>New Project Configuration</CardTitle>
+          <CardTitle>Create New RAG Configuration</CardTitle>
         </CardHeader>
         <CardContent>
           <ProjectForm
