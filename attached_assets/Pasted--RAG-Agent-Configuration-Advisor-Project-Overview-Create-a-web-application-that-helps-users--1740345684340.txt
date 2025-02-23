@@ -1,0 +1,256 @@
+# RAG Agent Configuration Advisor
+
+## Project Overview
+Create a web application that helps users design and structure multiple RAG agents for their projects. The app will analyze project requirements and provide:
+1. Recommended number of RAG agents
+2. Structured prompts for each agent
+3. Configuration for agent interactions
+4. Task distribution patterns
+
+## Core Features
+
+### 1. Project Requirement Analysis
+- Input form for project details:
+  - Project goal
+  - Data types (docs, code, structured data)
+  - Expected query patterns
+  - Performance requirements
+  - Scale requirements
+
+### 2. RAG Agent Configuration Generator
+- Outputs:
+  - Number of RAG agents needed
+  - Role of each agent
+  - Knowledge base distribution
+  - Memory requirements
+  - Tool access configurations
+
+### 3. Prompt Structure Generator
+Creates specialized prompts for different RAG agent types:
+
+#### Research Agent Prompt Template
+```
+You are a specialized research RAG agent focused on {research_domain}.
+
+Primary Responsibilities:
+- Search through {knowledge_base_types} for relevant information
+- Analyze and extract key insights from {data_types}
+- Synthesize findings into {output_format}
+
+Knowledge Base Access:
+- Primary sources: {source_list}
+- Search strategy: {strategy_details}
+- Context handling: {context_approach}
+
+Tool Integration:
+- Vector store: {usage_pattern}
+- Document processor: {processing_steps}
+- Citation tracker: {citation_format}
+
+Output Requirements:
+- Format: {format_details}
+- Citation style: {citation_style}
+- Confidence indicators: {confidence_metrics}
+```
+
+#### Analysis Agent Prompt Template
+```
+You are an analytical RAG agent specializing in {analysis_type}.
+
+Core Functions:
+- Process {data_type} inputs
+- Apply {analysis_methods}
+- Generate {output_type} insights
+
+Data Processing Protocol:
+1. Input validation: {validation_criteria}
+2. Analysis steps: {step_sequence}
+3. Output formatting: {format_specs}
+
+Tool Usage:
+- Analytics tools: {tool_list}
+- Processing pipeline: {pipeline_steps}
+- Quality checks: {check_points}
+```
+
+#### Synthesis Agent Prompt Template
+```
+You are a synthesis RAG agent responsible for combining outputs.
+
+Integration Responsibilities:
+- Combine inputs from {agent_list}
+- Resolve conflicts using {resolution_method}
+- Generate unified {output_type}
+
+Coordination Protocol:
+- Input handling: {input_pattern}
+- Conflict resolution: {resolution_steps}
+- Output validation: {validation_steps}
+
+Quality Controls:
+- Consistency checks: {check_types}
+- Verification steps: {verify_method}
+- Error handling: {error_protocol}
+```
+
+### 4. Agent Interaction Designer
+Defines how agents should communicate:
+
+```yaml
+interaction_pattern:
+  sequential:
+    - research_agent:
+        output_to: [analysis_agent]
+        format: {format_spec}
+    
+    - analysis_agent:
+        output_to: [synthesis_agent]
+        format: {format_spec}
+    
+    - synthesis_agent:
+        output_to: [final_output]
+        format: {format_spec}
+
+error_handling:
+  - retry_logic: {retry_spec}
+  - fallback_pattern: {fallback_steps}
+  - recovery_protocol: {recovery_steps}
+```
+
+## Technical Implementation
+
+### Frontend
+- React with TypeScript
+- Form for project requirements
+- Interactive configuration editor
+- Prompt template viewer
+- Agent interaction visualizer
+
+### Backend
+- Node.js/Express
+- Configuration generation logic
+- Prompt template engine
+- Interaction pattern generator
+
+### Database
+- MongoDB for storing:
+  - Project configurations
+  - Prompt templates
+  - Interaction patterns
+  - Usage analytics
+
+## User Flow
+
+1. Project Input
+```javascript
+{
+  projectName: string,
+  primaryGoal: string,
+  dataTypes: string[],
+  queryPatterns: string[],
+  scaleRequirements: {
+    dataVolume: string,
+    queryFrequency: string,
+    responseTime: string
+  }
+}
+```
+
+2. Configuration Generation
+```javascript
+{
+  agents: [
+    {
+      type: string,
+      role: string,
+      knowledgeBases: string[],
+      tooling: string[],
+      memoryConfig: object
+    }
+  ],
+  interactions: {
+    pattern: string,
+    dataFlow: object,
+    errorHandling: object
+  }
+}
+```
+
+3. Prompt Generation
+```javascript
+{
+  agentPrompts: [
+    {
+      agentId: string,
+      basePrompt: string,
+      specializations: string[],
+      constraints: object,
+      examples: string[]
+    }
+  ]
+}
+```
+
+## Example Output
+
+For a document processing project:
+
+```yaml
+recommended_configuration:
+  agents:
+    - document_processor:
+        role: "Initial document parsing and chunking"
+        prompt: "{document_processor_prompt}"
+        tools: ["pdf_parser", "text_chunker"]
+    
+    - information_extractor:
+        role: "Key information extraction"
+        prompt: "{extractor_prompt}"
+        tools: ["ner_tool", "relation_extractor"]
+    
+    - knowledge_synthesizer:
+        role: "Information synthesis and formatting"
+        prompt: "{synthesizer_prompt}"
+        tools: ["text_generator", "format_validator"]
+
+  interaction_flow:
+    - document_processor → information_extractor:
+        data: "chunked_documents"
+        format: "json"
+    
+    - information_extractor → knowledge_synthesizer:
+        data: "extracted_information"
+        format: "structured_data"
+    
+    - knowledge_synthesizer → output:
+        data: "final_synthesis"
+        format: "specified_format"
+```
+
+## Development Phases
+
+1. Core Engine Development (2 weeks)
+   - Configuration generator
+   - Prompt template engine
+   - Interaction pattern designer
+
+2. Frontend Development (2 weeks)
+   - User input forms
+   - Configuration display
+   - Prompt viewer
+   - Interaction visualizer
+
+3. Integration & Testing (1 week)
+   - API integration
+   - Unit testing
+   - System testing
+   - Performance optimization
+
+## Success Metrics
+- Configuration accuracy
+- Prompt effectiveness
+- User satisfaction
+- System performance
+- Error rate
+
+This web application will help users effectively structure and configure multiple RAG agents, providing clear guidance on agent roles, prompts, and interactions.
