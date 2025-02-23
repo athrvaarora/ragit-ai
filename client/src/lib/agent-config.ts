@@ -4,149 +4,285 @@ function determineAgentHierarchy(description: string): string[] {
   const agentTypes = new Set<string>();
   const desc = description.toLowerCase();
 
-  // Function to identify required agents based on project needs
-  function identifyAgentTypes(text: string) {
-    const projectNeeds = {
-      'sequence_manager': ['sequence', 'outreach', 'campaign'],
-      'chat_interface': ['chat', 'interface', 'interaction'],
-      'personalization_engine': ['personalized', 'customiz', 'adapt'],
-      'security_manager': ['secure', 'auth', 'protect'],
-      'deployment_orchestrator': ['deploy', 'container', 'architecture'],
-      'real_time_processor': ['real-time', 'real time', 'dynamic']
-    };
-
-    // Check each need against the description
-    Object.entries(projectNeeds).forEach(([agentType, keywords]) => {
-      if (keywords.some(keyword => text.includes(keyword))) {
-        agentTypes.add(agentType);
-      }
-    });
+  // Analyze project requirements to identify needed agent types
+  function identifyRequiredAgents(text: string) {
+    // Core capabilities needed
+    if (text.includes('chat') || text.includes('interface')) {
+      agentTypes.add('chat_processor');
+    }
+    if (text.includes('sequence') || text.includes('outreach')) {
+      agentTypes.add('sequence_designer');
+    }
+    if (text.includes('personalized') || text.includes('customize')) {
+      agentTypes.add('content_personalizer');
+    }
+    if (text.includes('real-time') || text.includes('dynamic')) {
+      agentTypes.add('realtime_orchestrator');
+    }
+    if (text.includes('secure') || text.includes('auth')) {
+      agentTypes.add('security_validator');
+    }
+    if (text.includes('deploy') || text.includes('architecture')) {
+      agentTypes.add('deployment_manager');
+    }
   }
 
-  // Analyze project description
-  identifyAgentTypes(desc);
-
+  identifyRequiredAgents(desc);
   return Array.from(agentTypes);
 }
 
-function generateAgentPrompt(type: string, context: {
-  projectName: string;
-  description: string;
-}): string {
-  const roleDescriptions: Record<string, string> = {
-    sequence_manager: `managing and orchestrating outreach sequences in ${context.projectName}. This agent specializes in creating, optimizing, and monitoring recruitment outreach sequences. It ensures proper timing, flow, and effectiveness of communication campaigns.
+function generateAgentPrompt(type: string, context: { projectName: string; description: string }): string {
+  const prompts: Record<string, string> = {
+    chat_processor: `Primary Task:
+This agent is responsible for managing all chat-based interactions in ${context.projectName}. It processes natural language inputs, understands user intentions, and converts them into actionable system commands. The agent maintains conversation context, handles multi-turn interactions, and ensures intuitive user experience through the chat interface.
 
-The agent maintains a sophisticated sequence management system that can handle multiple concurrent campaigns while ensuring personalization and relevance. It works closely with the Personalization Engine to tailor sequences to individual recipients and with the Real-time Processor to enable dynamic sequence adjustments.
+Interactions:
+- Receives: User chat inputs, system state updates
+- Provides: Parsed commands to Sequence Designer, feedback to users
+- Coordinates with: Realtime Orchestrator for dynamic updates, Content Personalizer for response customization
 
-Through its advanced sequence optimization capabilities, this agent continuously analyzes sequence performance and makes data-driven improvements to enhance engagement rates and campaign effectiveness.`,
+Standard Operating Procedure:
+1. Input Processing: Parse user messages using NLP to identify intents and entities
+2. Context Management: Maintain conversation history and user context
+3. Command Generation: Convert understood intentions into system actions
+4. Response Generation: Create clear, contextual responses to user inputs
+5. Feedback Loop: Monitor user interaction patterns for interface optimization
 
-    chat_interface: `managing the chat-driven interface of ${context.projectName}. This agent handles all aspects of the chat-based user interaction, ensuring intuitive and efficient sequence creation and management through natural language commands.
+Example Tasks:
+1. Process user request: "Create a new outreach sequence for senior developers"
+   - Extract intent: sequence_creation
+   - Entity: target_role = "senior developers"
+   - Action: Forward to Sequence Designer with parameters
 
-The agent processes user inputs, interprets intentions, and coordinates with other agents to execute requested actions. It maintains context across conversations and provides intelligent suggestions based on user behavior and system capabilities.
+2. Handle multi-turn interaction:
+   User: "Show me my sequences"
+   Agent: *Lists sequences*
+   User: "Edit the third one"
+   Agent: *Maintains context, loads correct sequence*
 
-Using advanced natural language processing, this agent transforms user instructions into actionable sequence modifications while providing real-time feedback and suggestions.`,
+3. Provide intelligent suggestions:
+   - Analyze user patterns
+   - Suggest relevant sequence templates
+   - Offer optimization recommendations`,
 
-    personalization_engine: `handling all aspects of message and sequence personalization in ${context.projectName}. This agent ensures that each outreach sequence is tailored to individual recipients while maintaining consistency in brand voice and recruitment standards.
+    sequence_designer: `Primary Task:
+This agent specializes in creating and managing outreach sequences in ${context.projectName}. It designs optimal communication flows, handles sequence logic, and ensures effective engagement patterns. The agent maintains sequence templates, manages customization points, and optimizes sequence performance based on feedback.
 
-The agent analyzes recipient data, determines optimal personalization points, and works with the Sequence Manager to implement personalized variations. It maintains a deep understanding of personalization effectiveness and continuously refines its approach based on engagement data.
+Interactions:
+- Receives: Sequence requirements from Chat Processor, personalization rules from Content Personalizer
+- Provides: Sequence designs to Realtime Orchestrator, performance data to all agents
+- Coordinates with: Deployment Manager for sequence deployment, Security Validator for compliance
 
-Through sophisticated personalization algorithms, this agent ensures that each communication feels personal and relevant while maintaining scalability across large campaigns.`,
+Standard Operating Procedure:
+1. Sequence Creation: Design communication flows based on requirements
+2. Template Management: Maintain and update sequence templates
+3. Logic Implementation: Define sequence rules and branching logic
+4. Performance Monitoring: Track sequence effectiveness
+5. Optimization: Adjust sequences based on performance data
 
-    security_manager: `ensuring secure operations and authentication in ${context.projectName}. This agent handles all security-related aspects, from user authentication to data protection and compliance enforcement.
+Example Tasks:
+1. Create multi-stage outreach sequence:
+   - Define stages: Introduction → Follow-up → Meeting Request
+   - Set timing rules
+   - Include personalization points
+   - Implement conditional branching
 
-The agent maintains robust authentication systems, manages access controls, and ensures secure data handling across all operations. It works with all other agents to enforce security policies while maintaining system usability.
+2. Optimize existing sequence:
+   - Analyze performance metrics
+   - Identify bottlenecks
+   - Suggest improvements
+   - Implement A/B testing
 
-Using industry-standard security practices, this agent protects sensitive information while enabling smooth system operation and user interaction.`,
+3. Manage sequence templates:
+   - Create role-specific templates
+   - Update based on performance data
+   - Implement best practices
+   - Enable easy customization`,
 
-    deployment_orchestrator: `managing the deployment and architectural aspects of ${context.projectName}. This agent handles system deployment, ensures proper containerization, and maintains the extensible architecture of the application.
+    content_personalizer: `Primary Task:
+This agent handles personalization of outreach content in ${context.projectName}. It analyzes recipient data, manages personalization rules, and ensures relevant customization of messages. The agent maintains personalization templates and optimizes customization strategies based on engagement data.
 
-The agent oversees system configuration, manages component interactions, and ensures smooth operation across different deployment environments. It coordinates with other agents to maintain system reliability and performance.
+Interactions:
+- Receives: Recipient data, sequence templates, engagement metrics
+- Provides: Personalized content, customization rules
+- Coordinates with: Sequence Designer for template integration, Realtime Orchestrator for dynamic updates
 
-Through its infrastructure management capabilities, this agent ensures robust and scalable system operation while enabling easy extensions and modifications.`,
+Standard Operating Procedure:
+1. Data Analysis: Process recipient information for personalization
+2. Rule Generation: Create personalization rules based on data
+3. Content Adaptation: Apply rules to sequence templates
+4. Performance Tracking: Monitor personalization effectiveness
+5. Strategy Optimization: Refine personalization approaches
 
-    real_time_processor: `handling real-time operations and dynamic adjustments in ${context.projectName}. This agent enables immediate sequence modifications, processes real-time feedback, and ensures responsive system behavior.
+Example Tasks:
+1. Personalize outreach message:
+   - Analyze recipient profile
+   - Select relevant customization points
+   - Apply personalization rules
+   - Validate output quality
 
-The agent maintains real-time state management, handles concurrent modifications, and ensures immediate updates across the system. It works closely with the Chat Interface and Sequence Manager to enable dynamic sequence adjustments and immediate user feedback.
+2. Create personalization strategy:
+   - Define customization variables
+   - Set up rules matrix
+   - Implement fallback options
+   - Monitor effectiveness
 
-Using advanced real-time processing capabilities, this agent ensures responsive system behavior while maintaining data consistency and operation reliability.`
+3. Optimize personalization rules:
+   - Analyze engagement data
+   - Identify successful patterns
+   - Update rule sets
+   - Implement improvements`,
+
+    realtime_orchestrator: `Primary Task:
+This agent manages real-time operations and dynamic updates in ${context.projectName}. It handles immediate sequence modifications, processes live feedback, and ensures system responsiveness. The agent coordinates real-time interactions between all components and maintains system state.
+
+Interactions:
+- Receives: Real-time updates, user actions, system events
+- Provides: State updates, synchronization signals
+- Coordinates with: All agents for real-time coordination
+
+Standard Operating Procedure:
+1. State Management: Maintain real-time system state
+2. Event Processing: Handle real-time events and updates
+3. Synchronization: Ensure component coordination
+4. Performance Monitoring: Track system responsiveness
+5. Optimization: Adjust processing for optimal performance
+
+Example Tasks:
+1. Handle real-time sequence update:
+   - Process modification request
+   - Update sequence state
+   - Notify affected components
+   - Ensure consistency
+
+2. Manage concurrent operations:
+   - Track multiple active sequences
+   - Handle parallel modifications
+   - Maintain data consistency
+   - Resolve conflicts
+
+3. Process live feedback:
+   - Capture real-time metrics
+   - Update system state
+   - Trigger necessary adjustments
+   - Maintain response time`,
+
+    security_validator: `Primary Task:
+This agent ensures security and compliance in ${context.projectName}. It handles authentication, manages access controls, and validates security requirements. The agent maintains security policies and ensures secure operation across all components.
+
+Interactions:
+- Receives: Authentication requests, security events
+- Provides: Security validations, access controls
+- Coordinates with: All agents for security enforcement
+
+Standard Operating Procedure:
+1. Authentication: Validate user credentials
+2. Authorization: Manage access permissions
+3. Compliance: Ensure security standards
+4. Monitoring: Track security events
+5. Response: Handle security incidents
+
+Example Tasks:
+1. Process authentication:
+   - Validate credentials
+   - Issue secure tokens
+   - Manage sessions
+   - Track access patterns
+
+2. Implement access controls:
+   - Define permission levels
+   - Set up role-based access
+   - Manage restrictions
+   - Audit access logs
+
+3. Ensure compliance:
+   - Validate operations
+   - Check security rules
+   - Generate audit trails
+   - Report violations`,
+
+    deployment_manager: `Primary Task:
+This agent handles system deployment and architecture management in ${context.projectName}. It manages containerized deployment, ensures system stability, and maintains extensible architecture. The agent coordinates component deployment and manages system configuration.
+
+Interactions:
+- Receives: Deployment requests, configuration updates
+- Provides: Deployment status, system health metrics
+- Coordinates with: All agents for deployment coordination
+
+Standard Operating Procedure:
+1. Deployment: Manage system deployment
+2. Configuration: Handle system settings
+3. Monitoring: Track system health
+4. Scaling: Manage system resources
+5. Maintenance: Handle updates and fixes
+
+Example Tasks:
+1. Manage deployment:
+   - Configure containers
+   - Deploy components
+   - Verify operation
+   - Monitor performance
+
+2. Handle scaling:
+   - Monitor resource usage
+   - Adjust capacity
+   - Optimize performance
+   - Maintain stability
+
+3. Manage extensions:
+   - Handle plugin integration
+   - Update configurations
+   - Validate compatibility
+   - Ensure stability`
   };
 
-  return roleDescriptions[type] || `Role: ${type}\n\nThis agent handles specialized tasks within the ${context.projectName} system, focusing on efficient task execution and seamless integration with other system components.`;
+  return prompts[type] || `Role: ${type}\n\nDetailed prompt not yet implemented.`;
 }
 
 function generateToolset(type: string): string[] {
   const toolsets: Record<string, string[]> = {
-    sequence_manager: [
-      "sequence_designer",      // Creates and modifies outreach sequences
-      "flow_optimizer",         // Optimizes sequence flow and timing
-      "campaign_monitor",       // Monitors campaign performance
-      "sequence_validator"      // Validates sequence logic and structure
-    ],
-    chat_interface: [
-      "intent_analyzer",        // Analyzes user chat intentions
+    chat_processor: [
+      "intent_analyzer",        // Analyzes user intentions
       "context_manager",        // Manages conversation context
-      "suggestion_generator",   // Generates intelligent suggestions
-      "response_formatter"      // Formats system responses
+      "command_generator",      // Generates system commands
+      "response_builder"        // Builds user responses
     ],
-    personalization_engine: [
-      "profile_analyzer",       // Analyzes recipient profiles
-      "content_customizer",     // Customizes message content
-      "variable_manager",       // Manages personalization variables
-      "effectiveness_tracker"   // Tracks personalization effectiveness
+    sequence_designer: [
+      "flow_creator",          // Creates sequence flows
+      "logic_handler",         // Manages sequence logic
+      "template_manager",      // Manages sequence templates
+      "performance_tracker"    // Tracks sequence performance
     ],
-    security_manager: [
-      "auth_handler",          // Handles authentication
-      "permission_manager",     // Manages access permissions
-      "security_validator",     // Validates security requirements
-      "compliance_checker"      // Ensures security compliance
+    content_personalizer: [
+      "data_analyzer",         // Analyzes recipient data
+      "rule_engine",          // Manages personalization rules
+      "content_adapter",      // Adapts content based on rules
+      "effectiveness_monitor" // Monitors personalization effectiveness
     ],
-    deployment_orchestrator: [
-      "container_manager",      // Manages containerized deployment
-      "config_handler",         // Handles system configuration
-      "scaling_optimizer",      // Optimizes system scaling
-      "extension_manager"       // Manages system extensions
-    ],
-    real_time_processor: [
+    realtime_orchestrator: [
       "state_manager",         // Manages real-time state
-      "update_processor",      // Processes real-time updates
-      "concurrency_handler",   // Handles concurrent operations
-      "sync_coordinator"       // Coordinates real-time synchronization
+      "event_processor",      // Processes real-time events
+      "sync_controller",      // Controls synchronization
+      "performance_monitor"   // Monitors system performance
+    ],
+    security_validator: [
+      "auth_handler",          // Handles authentication
+      "access_controller",    // Controls access permissions
+      "compliance_checker",   // Checks security compliance
+      "security_monitor"      // Monitors security events
+    ],
+    deployment_manager: [
+      "container_handler",     // Handles container management
+      "config_manager",       // Manages configurations
+      "resource_optimizer",   // Optimizes resource usage
+      "health_monitor"        // Monitors system health
     ]
   };
 
-  return toolsets[type] || [
-    "task_processor",
-    "integration_handler",
-    "quality_validator",
-    "performance_monitor"
-  ];
+  return toolsets[type] || ["default_toolkit"];
 }
 
-function getAgentCollaborationOverview(): string {
-  return `The recruitment outreach system operates through a coordinated network of specialized agents:
-
-The system follows a layered architecture with clear responsibility delegation:
-1. Interface Layer: Chat Interface agent handles user interactions
-2. Processing Layer: Sequence Manager and Personalization Engine handle core business logic
-3. Infrastructure Layer: Security Manager and Deployment Orchestrator ensure robust operation
-4. Real-time Layer: Real-time Processor enables dynamic system behavior
-
-Information flows both vertically and horizontally:
-- Vertical: Commands flow down from interface to processing to infrastructure layers
-- Horizontal: Agents within each layer coordinate for optimal operation
-
-Key collaboration patterns:
-- Synchronous Operations: Real-time updates and immediate feedback
-- Asynchronous Processing: Background optimization and analysis
-- Parallel Execution: Concurrent handling of multiple sequences
-- Feedback Loops: Continuous improvement through performance monitoring
-
-The system maintains flexibility to adapt to different recruitment needs while ensuring security, scalability, and user-friendly operation.`;
-}
-
-export function generateRagConfiguration(
-  requirements: ProjectRequirements
-): RagAgentConfiguration {
+export function generateRagConfiguration(requirements: ProjectRequirements): RagAgentConfiguration {
   const agentTypes = determineAgentHierarchy(requirements.projectDescription);
   const agents = [];
 
@@ -174,12 +310,12 @@ export function generateRagConfiguration(
     interactionFlow: {
       pattern: "orchestrated",
       taskDistribution: {
-        strategy: "hierarchical",
-        routing: "chain_of_command"
+        strategy: "capability_based",
+        routing: "dynamic"
       },
       errorHandling: {
         strategy: "graceful_degradation",
-        fallbackBehavior: "escalate_to_supervisor"
+        fallbackBehavior: "retry_with_simplification"
       }
     }
   };
@@ -191,9 +327,9 @@ export function getAgentRationale(requirements: ProjectRequirements): string {
   const agentDescriptions = agentTypes.map(type => {
     const readableName = type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const tools = generateToolset(type);
-    return `${readableName} Agent:
-- Primary Focus: ${type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} operations
-- Key Tools: ${tools.join(', ')}`;
+    return `${readableName}:
+Primary Focus: ${readableName} operations
+Tools: ${tools.join(', ')}`;
   }).join('\n\n');
 
   return `Based on the project requirements for ${requirements.projectName}, I've identified the need for ${agentTypes.length} specialized RAG agents:
@@ -201,16 +337,19 @@ export function getAgentRationale(requirements: ProjectRequirements): string {
 ${agentDescriptions}
 
 Interaction Pattern: Orchestrated
-- Agents work together in a coordinated workflow
-- Dynamic task routing based on agent capabilities
-- Continuous feedback and adaptation
+- Dynamic workflow based on capabilities
+- Real-time coordination and adaptation
 - Comprehensive error handling
+
+Key collaboration patterns:
+- Primary coordination through Realtime Orchestrator
+- Parallel processing for independent tasks
+- Sequential processing for dependent operations
+- Continuous feedback loops for optimization
 
 This configuration ensures:
 - Efficient task processing
 - Clear responsibility delegation
 - Specialized expertise utilization
-- Scalable operations
-
-${getAgentCollaborationOverview()}`;
+- Scalable operations`;
 }

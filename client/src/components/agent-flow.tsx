@@ -220,20 +220,20 @@ export function AgentFlow({ configuration }: AgentFlowProps) {
   }
 
   return (
-    <div className="h-[700px] border rounded-lg bg-gradient-to-br from-background to-primary/5">
+    <div className="h-[700px] border rounded-lg bg-white">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         fitView
-        className="bg-background/50"
+        className="bg-white"
         minZoom={0.5}
         maxZoom={1.5}
       >
-        <Background />
+        <Background color="#e5e7eb" gap={16} />
         <Controls />
-        <Panel position="top-left" className="bg-card border rounded-lg p-4 backdrop-blur-sm bg-opacity-95">
+        <Panel position="top-left" className="bg-white border rounded-lg p-4">
           <div className="space-y-3">
             <div>
               <h3 className="font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
