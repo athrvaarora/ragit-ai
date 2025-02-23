@@ -18,28 +18,40 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { projectRequirementSchema, type ProjectRequirements } from "@shared/schema";
 
 const dataTypes = [
-  "Documents",
-  "Code",
-  "Structured Data",
-  "Images",
-  "Audio"
+  "Documents (PDF/Text)",
+  "Structured Data (JSON/CSV)",
+  "Code Repositories",
+  "Web Content",
+  "Database Records"
 ];
 
-const queryPatterns = [
+const queryTypes = [
   "Question Answering",
   "Information Extraction",
   "Summarization",
-  "Analysis"
+  "Analysis & Insights",
+  "Code Understanding",
+  "Data Transformation"
 ];
 
-const scaleOptions = {
-  dataVolume: ["Small (<100MB)", "Medium (100MB-1GB)", "Large (>1GB)"],
-  queryFrequency: ["Low (<10/hour)", "Medium (10-100/hour)", "High (>100/hour)"],
-  responseTime: ["Fast (<1s)", "Medium (1-5s)", "Relaxed (>5s)"]
+const complexityLevels = {
+  dataVolume: ["Small (<100MB)", "Medium (1-10GB)", "Large (>10GB)"],
+  queryComplexity: ["Simple", "Moderate", "High"],
+  updateFrequency: ["Static", "Daily Updates", "Real-time"],
+  responseTime: ["Real-time (<1s)", "Near Real-time (<5s)", "Batch (>5s)"]
 };
+
+const outputFormats = [
+  "Structured JSON",
+  "Natural Language",
+  "Markdown",
+  "HTML",
+  "Custom Format"
+];
 
 interface ProjectFormProps {
   onSubmit: (data: ProjectRequirements) => void;
@@ -52,12 +64,23 @@ export function ProjectForm({ onSubmit, isLoading }: ProjectFormProps) {
     defaultValues: {
       projectName: "",
       projectGoal: "",
-      dataTypes: [],
-      queryPatterns: [],
-      scaleRequirements: {
+      dataCharacteristics: {
+        dataTypes: [],
         dataVolume: "",
-        queryFrequency: "",
-        responseTime: ""
+        updateFrequency: "",
+        structureType: ""
+      },
+      queryRequirements: {
+        queryTypes: [],
+        complexity: "",
+        expectedVolume: "",
+        responseTimeNeeded: ""
+      },
+      specialRequirements: [],
+      outputFormat: {
+        type: "",
+        structure: "",
+        citations: true
       }
     }
   });
@@ -72,7 +95,7 @@ export function ProjectForm({ onSubmit, isLoading }: ProjectFormProps) {
             <FormItem>
               <FormLabel>Project Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter project name" {...field} />
+                <Input placeholder="Enter your RAG project name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,7 +110,8 @@ export function ProjectForm({ onSubmit, isLoading }: ProjectFormProps) {
               <FormLabel>Project Goal</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Describe your project's main objective..."
+                  placeholder="Describe what you want to achieve with RAG agents..."
+                  className="min-h-[100px]"
                   {...field}
                 />
               </FormControl>
@@ -96,94 +120,96 @@ export function ProjectForm({ onSubmit, isLoading }: ProjectFormProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="dataTypes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Data Types</FormLabel>
-              <FormControl>
-                <Select
-                  onValueChange={(value) => field.onChange([...field.value, value])}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select data types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dataTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {field.value.map((type) => (
-                  <Button
-                    key={type}
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      field.onChange(field.value.filter((t) => t !== type));
-                    }}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="dataCharacteristics.dataTypes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data Types</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={(value) => field.onChange([...field.value, value])}
                   >
-                    {type} ×
-                  </Button>
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select data types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dataTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {field.value.map((type) => (
+                    <Button
+                      key={type}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        field.onChange(field.value.filter((t) => t !== type));
+                      }}
+                    >
+                      {type} ×
+                    </Button>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="queryPatterns"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Query Patterns</FormLabel>
-              <FormControl>
-                <Select
-                  onValueChange={(value) => field.onChange([...field.value, value])}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select query patterns" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {queryPatterns.map((pattern) => (
-                      <SelectItem key={pattern} value={pattern}>
-                        {pattern}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {field.value.map((pattern) => (
-                  <Button
-                    key={pattern}
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      field.onChange(field.value.filter((p) => p !== pattern));
-                    }}
+          <FormField
+            control={form.control}
+            name="queryRequirements.queryTypes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Query Types</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={(value) => field.onChange([...field.value, value])}
                   >
-                    {pattern} ×
-                  </Button>
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select query types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {queryTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {field.value.map((type) => (
+                    <Button
+                      key={type}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        field.onChange(field.value.filter((t) => t !== type));
+                      }}
+                    >
+                      {type} ×
+                    </Button>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Object.entries(scaleOptions).map(([key, options]) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {Object.entries(complexityLevels).map(([key, options]) => (
             <FormField
               key={key}
               control={form.control}
-              name={`scaleRequirements.${key as keyof ProjectRequirements["scaleRequirements"]}`}
+              name={`queryRequirements.${key}`}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{key.replace(/([A-Z])/g, " $1").toUpperCase()}</FormLabel>
@@ -208,8 +234,53 @@ export function ProjectForm({ onSubmit, isLoading }: ProjectFormProps) {
           ))}
         </div>
 
+        <FormField
+          control={form.control}
+          name="outputFormat.type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Output Format</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select output format" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {outputFormats.map((format) => (
+                    <SelectItem key={format} value={format}>
+                      {format}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="outputFormat.citations"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Require source citations
+                </FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
+
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Creating Project..." : "Create Project"}
+          {isLoading ? "Analyzing Requirements..." : "Generate RAG Configuration"}
         </Button>
       </form>
     </Form>

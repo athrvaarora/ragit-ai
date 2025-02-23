@@ -1,14 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AgentConfiguration } from "@shared/schema";
-import { generatePromptTemplate } from "@/lib/agent-config";
+import { RagAgentConfiguration } from "@shared/schema";
 
 interface PromptPreviewProps {
-  agent: AgentConfiguration["agents"][0];
+  agent: RagAgentConfiguration["agents"][0];
 }
 
 export function PromptPreview({ agent }: PromptPreviewProps) {
-  const prompt = generatePromptTemplate(agent);
-
   return (
     <Card>
       <CardHeader>
@@ -16,7 +13,7 @@ export function PromptPreview({ agent }: PromptPreviewProps) {
       </CardHeader>
       <CardContent>
         <pre className="whitespace-pre-wrap font-mono text-sm bg-muted p-4 rounded-lg">
-          {prompt}
+          {agent.promptTemplate}
         </pre>
       </CardContent>
     </Card>

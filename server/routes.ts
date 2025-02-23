@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { projectRequirementSchema, agentConfigSchema } from "@shared/schema";
+import { projectRequirementSchema, ragAgentConfigSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express) {
   // Create new project
@@ -11,7 +11,7 @@ export async function registerRoutes(app: Express) {
       const project = await storage.createProject({
         name: requirements.projectName,
         requirements,
-        configuration: { agents: [], interactions: { pattern: "", dataFlow: {}, errorHandling: {} } }
+        configuration: { agents: [], interactionFlow: { pattern: "", taskDistribution: {}, errorHandling: { strategy: "", fallbackBehavior: "" } } }
       });
       res.json(project);
     } catch (error) {
@@ -38,7 +38,7 @@ export async function registerRoutes(app: Express) {
   // Update project configuration
   app.patch("/api/projects/:id/configuration", async (req, res) => {
     try {
-      const configuration = agentConfigSchema.parse(req.body);
+      const configuration = ragAgentConfigSchema.parse(req.body);
       const project = await storage.updateProject(Number(req.params.id), {
         configuration
       });

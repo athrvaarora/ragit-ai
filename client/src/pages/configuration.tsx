@@ -1,10 +1,10 @@
-import { useParams, useLocation } from "wouter";
+import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AgentFlow } from "@/components/agent-flow";
-import { Project, ProjectRequirements, AgentConfiguration } from "@shared/schema";
-import { generateAgentConfiguration } from "@/lib/agent-config";
+import { Project, ProjectRequirements, RagAgentConfiguration } from "@shared/schema";
+import { generateRagConfiguration, getAgentRationale } from "@/lib/agent-config";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,7 +19,7 @@ export default function Configuration() {
   const generateConfig = useMutation({
     mutationFn: async () => {
       if (!project) return;
-      const config = generateAgentConfiguration(project.requirements as ProjectRequirements);
+      const config = generateRagConfiguration(project.requirements as ProjectRequirements);
       const res = await apiRequest(
         "PATCH",
         `/api/projects/${id}/configuration`,
@@ -31,12 +31,12 @@ export default function Configuration() {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
       toast({
         title: "Configuration generated",
-        description: "Your agent configuration has been updated"
+        description: "Your RAG agent configuration has been updated"
       });
     }
   });
 
-  if (isLoading) {
+  if (isLoading || !project) {
     return (
       <div className="container mx-auto py-8">
         <Card className="animate-pulse">
@@ -51,16 +51,19 @@ export default function Configuration() {
     );
   }
 
-  if (!project) return null;
+  const configuration = project.configuration as RagAgentConfiguration;
+  const rationale = getAgentRationale(project.requirements as ProjectRequirements);
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{project.name} Configuration</CardTitle>
-          <div className="flex gap-2">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>{project.name}</CardTitle>
+              <CardDescription>RAG Agent Configuration</CardDescription>
+            </div>
             <Button
-              variant="outline"
               onClick={() => generateConfig.mutate()}
               disabled={generateConfig.isPending}
             >
@@ -69,8 +72,47 @@ export default function Configuration() {
           </div>
         </CardHeader>
         <CardContent>
-          {(project.configuration as AgentConfiguration).agents.length > 0 ? (
-            <AgentFlow configuration={project.configuration as AgentConfiguration} />
+          <div className="prose dark:prose-invert max-w-none mb-6">
+            <h3>Configuration Rationale</h3>
+            <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-sm">
+              {rationale}
+            </pre>
+          </div>
+
+          {configuration.agents.length > 0 ? (
+            <>
+              <h3 className="text-lg font-semibold mb-4">Agent Interaction Flow</h3>
+              <AgentFlow configuration={configuration} />
+
+              <div className="mt-6 space-y-4">
+                <h3 className="text-lg font-semibold">Agent Details</h3>
+                {configuration.agents.map((agent, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <CardTitle>{agent.role}</CardTitle>
+                      <CardDescription>{agent.type}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Responsibilities:</h4>
+                        <ul className="list-disc pl-5">
+                          {agent.responsibilities.map((resp, i) => (
+                            <li key={i}>{resp}</li>
+                          ))}
+                        </ul>
+
+                        <h4 className="font-medium mt-4">Knowledge Base:</h4>
+                        <div className="bg-muted p-3 rounded">
+                          <p>Sources: {agent.knowledgeBase.sources.join(", ")}</p>
+                          <p>Indexing: {agent.knowledgeBase.indexingStrategy}</p>
+                          <p>Retrieval: {agent.knowledgeBase.retrievalMethod}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               No configuration generated yet. Click the button above to generate one.

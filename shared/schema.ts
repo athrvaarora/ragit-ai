@@ -6,28 +6,47 @@ import { z } from "zod";
 export const projectRequirementSchema = z.object({
   projectName: z.string().min(1, "Project name is required"),
   projectGoal: z.string().min(10, "Please provide a detailed project goal"),
-  dataTypes: z.array(z.string()).min(1, "Select at least one data type"),
-  queryPatterns: z.array(z.string()).min(1, "Select at least one query pattern"),
-  scaleRequirements: z.object({
+  dataCharacteristics: z.object({
+    dataTypes: z.array(z.string()).min(1, "Select at least one data type"),
     dataVolume: z.string(),
-    queryFrequency: z.string(),
-    responseTime: z.string()
+    updateFrequency: z.string(),
+    structureType: z.string()
+  }),
+  queryRequirements: z.object({
+    queryTypes: z.array(z.string()).min(1, "Select at least one query type"),
+    complexity: z.string(),
+    expectedVolume: z.string(),
+    responseTimeNeeded: z.string()
+  }),
+  specialRequirements: z.array(z.string()).optional(),
+  outputFormat: z.object({
+    type: z.string(),
+    structure: z.string(),
+    citations: z.boolean()
   })
 });
 
-// Schema for agent configuration
-export const agentConfigSchema = z.object({
+// Schema for RAG agent configuration
+export const ragAgentConfigSchema = z.object({
   agents: z.array(z.object({
     type: z.string(),
     role: z.string(),
-    knowledgeBases: z.array(z.string()),
-    tooling: z.array(z.string()),
-    memoryConfig: z.record(z.any())
+    responsibilities: z.array(z.string()),
+    knowledgeBase: z.object({
+      sources: z.array(z.string()),
+      indexingStrategy: z.string(),
+      retrievalMethod: z.string()
+    }),
+    promptTemplate: z.string(),
+    tooling: z.array(z.string())
   })),
-  interactions: z.object({
+  interactionFlow: z.object({
     pattern: z.string(),
-    dataFlow: z.record(z.any()),
-    errorHandling: z.record(z.any())
+    taskDistribution: z.record(z.any()),
+    errorHandling: z.object({
+      strategy: z.string(),
+      fallbackBehavior: z.string()
+    })
   })
 });
 
@@ -42,6 +61,6 @@ export const projects = pgTable("projects", {
 export const insertProjectSchema = createInsertSchema(projects);
 
 export type ProjectRequirements = z.infer<typeof projectRequirementSchema>;
-export type AgentConfiguration = z.infer<typeof agentConfigSchema>;
+export type RagAgentConfiguration = z.infer<typeof ragAgentConfigSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;

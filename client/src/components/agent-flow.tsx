@@ -6,10 +6,10 @@ import ReactFlow, {
   Panel
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { AgentConfiguration } from "@shared/schema";
+import { RagAgentConfiguration } from "@shared/schema";
 
 interface AgentFlowProps {
-  configuration: AgentConfiguration;
+  configuration: RagAgentConfiguration;
 }
 
 export function AgentFlow({ configuration }: AgentFlowProps) {
