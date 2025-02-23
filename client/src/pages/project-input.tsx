@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectForm } from "@/components/project-form";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Project, ProjectRequirements } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,10 +16,15 @@ export default function ProjectInput() {
       return res.json() as Promise<Project>;
     },
     onSuccess: (data) => {
+      // Invalidate projects query to refresh sidebar
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+
       toast({
         title: "Project created",
         description: "Redirecting to configuration..."
       });
+
+      // Navigate to the configuration page
       navigate(`/project/${data.id}/configuration`);
     },
     onError: () => {
