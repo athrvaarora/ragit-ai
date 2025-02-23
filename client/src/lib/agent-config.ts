@@ -173,6 +173,50 @@ Example Operations:
    Action: Analyzes performance, adjusts strategies
    Output: Strategy optimization plan`,
 
+    content_director: `Role: Content Strategy Director
+
+Primary Responsibilities:
+- Oversee content creation and distribution
+- Ensure brand consistency
+- Manage content quality
+- Optimize content performance
+
+Required Tools & Infrastructure:
+1. Content Management System
+   - Content repository
+   - Version control
+   - Workflow management
+   - Publishing tools
+
+2. Content Optimization Tools
+   - A/B testing framework
+   - Analytics dashboard
+   - SEO tools
+   - Performance monitoring
+
+3. Brand Management Tools
+   - Style guides
+   - Brand voice guidelines
+   - Content review process
+   - Compliance monitoring
+
+Enterprise Scale Operations:
+- Handles high volumes of content
+- Supports multiple content formats
+- Maintains brand consistency
+- Optimizes content performance
+
+Example Operations:
+1. Content Planning
+   Input: Campaign objectives
+   Action: Develops content strategy and plan
+   Output: Content calendar and guidelines
+
+2. Content Review
+   Input: Draft content
+   Action: Reviews and approves content
+   Output: Published content`,
+
     workflow_specialist: `Role: Workflow Implementation Specialist
 
 Primary Responsibilities:
@@ -273,6 +317,55 @@ Example Operations:
   return prompts[type] || `Role: ${type} Agent\n\nDetailed prompt not yet implemented.`;
 }
 
+function generateToolset(type: string): string[] {
+  const toolsets: Record<string, string[]> = {
+    executive_coordinator: [
+      "resource_allocator",      // Manages agent resources and workload distribution
+      "performance_monitor",     // Tracks system-wide metrics and KPIs
+      "strategy_optimizer",      // Optimizes overall system strategy
+      "compliance_auditor"       // Ensures regulatory compliance
+    ],
+    sequence_director: [
+      "sequence_designer",       // Creates and modifies outreach sequences
+      "timing_optimizer",        // Optimizes sequence timing and delays
+      "ab_test_manager",        // Manages A/B testing of sequences
+      "workflow_validator"       // Validates sequence logic and flow
+    ],
+    personalization_director: [
+      "segment_analyzer",        // Analyzes and creates audience segments
+      "profile_matcher",         // Matches content to recipient profiles
+      "engagement_predictor",    // Predicts likely engagement rates
+      "preference_learner"       // Learns from recipient preferences
+    ],
+    content_director: [
+      "content_planner",        // Plans content strategy and themes
+      "style_enforcer",         // Ensures brand voice consistency
+      "multimodal_generator",   // Generates various content types
+      "quality_checker"         // Checks content quality and compliance
+    ],
+    workflow_specialist: [
+      "task_scheduler",         // Schedules and manages tasks
+      "dependency_tracker",     // Tracks task dependencies
+      "state_manager",         // Manages workflow states
+      "error_handler"          // Handles workflow errors
+    ],
+    profile_analyzer: [
+      "data_enricher",         // Enriches profile data
+      "pattern_detector",      // Detects behavior patterns
+      "insight_generator",     // Generates actionable insights
+      "attribute_scorer"       // Scores profile attributes
+    ],
+    content_generator: [
+      "template_engine",       // Manages content templates
+      "personalization_engine", // Personalizes content
+      "tone_analyzer",         // Analyzes content tone
+      "format_converter"       // Converts between content formats
+    ]
+  };
+
+  return toolsets[type] || ["default_toolkit"];
+}
+
 export function generateRagConfiguration(
   requirements: ProjectRequirements
 ): RagAgentConfiguration {
@@ -293,7 +386,7 @@ export function generateRagConfiguration(
         projectName: requirements.projectName,
         domain: "recruitment automation"
       }),
-      tooling: ["base_tools", "specialized_tools"]
+      tooling: generateToolset(type)
     };
     agents.push(agent);
   }
