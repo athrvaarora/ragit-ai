@@ -6,6 +6,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import { nanoid } from "nanoid";
 
 declare global {
   namespace Express {
@@ -26,6 +27,14 @@ async function comparePasswords(supplied: string, stored: string) {
   const hashedBuf = Buffer.from(hashed, "hex");
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
   return timingSafeEqual(hashedBuf, suppliedBuf);
+}
+
+function generateGuestUser() {
+  const guestId = nanoid(6);
+  return {
+    username: `guest_${guestId}`,
+    password: randomBytes(32).toString("hex")
+  };
 }
 
 export function setupAuth(app: Express) {
@@ -73,6 +82,23 @@ export function setupAuth(app: Express) {
       if (err) return next(err);
       res.status(201).json(user);
     });
+  });
+
+  app.post("/api/guest-login", async (req, res, next) => {
+    try {
+      const guestCredentials = generateGuestUser();
+      const user = await storage.createUser({
+        ...guestCredentials,
+        password: await hashPassword(guestCredentials.password),
+      });
+
+      req.login(user, (err) => {
+        if (err) return next(err);
+        res.status(201).json(user);
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {

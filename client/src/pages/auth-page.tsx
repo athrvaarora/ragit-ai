@@ -10,7 +10,7 @@ import { insertUserSchema, type InsertUser } from "@shared/schema";
 import { useLocation } from "wouter";
 
 export default function AuthPage() {
-  const { loginMutation, registerMutation } = useAuth();
+  const { loginMutation, registerMutation, loginAsGuestMutation } = useAuth();
   const [, setLocation] = useLocation();
 
   const loginForm = useForm({
@@ -84,13 +84,26 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={loginMutation.isPending}
-                    >
-                      {loginMutation.isPending ? "Logging in..." : "Login"}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={loginMutation.isPending}
+                      >
+                        {loginMutation.isPending ? "Logging in..." : "Login"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        disabled={loginAsGuestMutation.isPending}
+                        onClick={() => loginAsGuestMutation.mutate(undefined, {
+                          onSuccess: () => setLocation("/")
+                        })}
+                      >
+                        {loginAsGuestMutation.isPending ? "Creating guest account..." : "Continue as Guest"}
+                      </Button>
+                    </div>
                   </form>
                 </Form>
               </TabsContent>

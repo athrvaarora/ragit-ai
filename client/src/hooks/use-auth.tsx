@@ -15,6 +15,7 @@ type AuthContextType = {
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+  loginAsGuestMutation: UseMutationResult<SelectUser, Error, void>;
 };
 
 type LoginData = Pick<InsertUser, "username" | "password">;
@@ -65,6 +66,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const loginAsGuestMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/guest-login");
+      return await res.json();
+    },
+    onSuccess: (user: SelectUser) => {
+      queryClient.setQueryData(["/api/user"], user);
+      toast({
+        title: "Welcome, Guest!",
+        description: "You are now using a temporary account"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Guest login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
@@ -90,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        loginAsGuestMutation,
       }}
     >
       {children}
