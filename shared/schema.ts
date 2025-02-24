@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -32,12 +32,25 @@ export const ragAgentConfigSchema = z.object({
   })
 });
 
+// User schema
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  createdAt: text("created_at").notNull().$default(() => new Date().toISOString())
+});
+
 // Database tables
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   requirements: jsonb("requirements").notNull(),
-  configuration: jsonb("configuration").notNull()
+  configuration: jsonb("configuration").notNull(),
+  ownerId: integer("owner_id").notNull().references(() => users.id)
+});
+
+export const insertUserSchema = createInsertSchema(users).extend({
+  password: z.string().min(6, "Password must be at least 6 characters")
 });
 
 export const insertProjectSchema = createInsertSchema(projects);
@@ -46,3 +59,5 @@ export type ProjectRequirements = z.infer<typeof projectRequirementSchema>;
 export type RagAgentConfiguration = z.infer<typeof ragAgentConfigSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
