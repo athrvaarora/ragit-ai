@@ -1,8 +1,9 @@
 # RagIT AI - RAG Configuration Generator
 
 RagIT AI is an intelligent web application that helps users design and configure Retrieval-Augmented Generation (RAG) systems through an intuitive, step-by-step interface. It analyzes project requirements and automatically generates optimized multi-agent RAG configurations.
+![RagIT AI Interface](screenshots/Login.png)
+![RagIT AI Interface](screenshots/Flow.png)
 
-![RagIT AI Interface](screenshots/main-interface.png)
 
 ## Features
 
@@ -31,10 +32,15 @@ RagIT AI is an intelligent web application that helps users design and configure
 ## Screenshots
 
 ### Landing Page
-![Landing Page](screenshots/landing.png)
+![Landing Page](screenshots/ProjectName.png)
+![Landing Page](screenshots/ProjectDescription.png)
+![Landing Page](screenshots/Review.png)
 *Beautiful landing page with step-by-step project configuration*
 
 ### Agent Configuration
+![Agent Configuration](screenshots/ConfigurationRationale.png)
+![Agent Configuration](screenshots/config.png)
+![Agent Configuration](screenshots/config.png)
 ![Agent Configuration](screenshots/config.png)
 *Interactive agent configuration with detailed rationale*
 
