@@ -32,7 +32,6 @@ export default function AuthPage() {
   });
 
   const handleGuestLogin = () => {
-    if (loginAsGuestMutation.isPending) return;
     loginAsGuestMutation.mutate(undefined, {
       onSuccess: () => setLocation("/")
     });
@@ -106,7 +105,7 @@ export default function AuthPage() {
                         disabled={loginAsGuestMutation.isPending}
                         onClick={handleGuestLogin}
                       >
-                        {loginAsGuestMutation.isPending ? "Creating guest account..." : "Continue as Guest"}
+                        {loginAsGuestMutation.isPending ? "Redirecting..." : "Continue as Guest"}
                       </Button>
                     </div>
                   </form>

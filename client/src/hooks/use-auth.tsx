@@ -73,10 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Welcome, Guest!",
-        description: "You are now using a temporary account"
-      });
     },
     onError: (error: Error) => {
       toast({
