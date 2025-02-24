@@ -31,6 +31,13 @@ export default function AuthPage() {
     },
   });
 
+  const handleGuestLogin = async () => {
+    if (loginAsGuestMutation.isPending) return;
+    await loginAsGuestMutation.mutateAsync(undefined, {
+      onSuccess: () => setLocation("/")
+    });
+  };
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="flex items-center justify-center p-8">
@@ -97,9 +104,7 @@ export default function AuthPage() {
                         variant="outline"
                         className="w-full"
                         disabled={loginAsGuestMutation.isPending}
-                        onClick={() => loginAsGuestMutation.mutate(undefined, {
-                          onSuccess: () => setLocation("/")
-                        })}
+                        onClick={handleGuestLogin}
                       >
                         {loginAsGuestMutation.isPending ? "Creating guest account..." : "Continue as Guest"}
                       </Button>
