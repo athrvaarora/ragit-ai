@@ -31,9 +31,9 @@ export default function AuthPage() {
     },
   });
 
-  const handleGuestLogin = async () => {
+  const handleGuestLogin = () => {
     if (loginAsGuestMutation.isPending) return;
-    await loginAsGuestMutation.mutateAsync(undefined, {
+    loginAsGuestMutation.mutate(undefined, {
       onSuccess: () => setLocation("/")
     });
   };
