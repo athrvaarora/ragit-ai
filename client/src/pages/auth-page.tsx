@@ -31,12 +31,6 @@ export default function AuthPage() {
     },
   });
 
-  const handleGuestLogin = () => {
-    loginAsGuestMutation.mutate(undefined, {
-      onSuccess: () => setLocation("/")
-    });
-  };
-
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="flex items-center justify-center p-8">
@@ -103,7 +97,7 @@ export default function AuthPage() {
                         variant="outline"
                         className="w-full"
                         disabled={loginAsGuestMutation.isPending}
-                        onClick={handleGuestLogin}
+                        onClick={() => loginAsGuestMutation.mutate()}
                       >
                         {loginAsGuestMutation.isPending ? "Redirecting..." : "Continue as Guest"}
                       </Button>
