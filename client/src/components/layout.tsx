@@ -11,19 +11,19 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <Navbar />
+      <div className="lg:hidden fixed top-16 left-4 z-50">
         <Sheet>
           <SheetTrigger asChild>
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+            <button className="p-2 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors shadow-sm">
               <Menu className="h-6 w-6" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-80">
+          <SheetContent side="left" className="p-0 w-[80%] sm:w-80">
             <Sidebar />
           </SheetContent>
         </Sheet>
       </div>
-      <Navbar />
       <div className="flex">
         <div className="hidden lg:block">
           <Sidebar />
